@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="#f8f8f8" >
+    <RelativeLayout
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:id="@+id/cus_add_top_title"
+        android:background="@drawable/top_bg_cust" >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:tag="bold"
+            android:textColor="#fff"
+            android:gravity="center"
+            android:textSize="25dp"
+            android:text="피보호자 정보" />
+    </RelativeLayout>
+ 
+    <RelativeLayout
+        android:layout_marginTop="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="150dp">
+
+
+	    <ImageView
+	        android:layout_width="150dp"
+	        android:layout_height="150dp" 
+	        android:src="@drawable/loading_animation"
+	        android:layout_alignParentLeft="true"
+	        android:padding="10dp"
+	        android:scaleType="fitXY"
+	        />         
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:tag="bold"
+            android:textColor="#000"
+            android:gravity="center_vertical"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            android:textSize="18dp"
+            android:id="@+id/ward"
+            android:text="홍길동 (만 10세)" />
+    </RelativeLayout> 
+    
+    
+    <RelativeLayout
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:tag="bold"
+            android:textColor="#000"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:textSize="18dp"
+            android:text="전화번호 : 010-1111-2222 " />
+        
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:tag="bold"
+            android:textColor="#000"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="10dp"
+            android:textSize="15dp"
+            android:text="전화" />     
+    </RelativeLayout> 
+    
+    <RelativeLayout
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:tag="bold"
+            android:textColor="#000"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:textSize="18dp"
+            android:text="주소 : " />
+   
+    </RelativeLayout>     
+    
+    <RelativeLayout
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="70dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:tag="bold"
+            android:textColor="#000"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:textSize="18dp"
+            android:text="특징 : " />
+   
+    </RelativeLayout>      
+    
+    
+</LinearLayout>

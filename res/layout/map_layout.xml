@@ -1,19 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
+    android:layout_height="fill_parent">
+    
+    <RelativeLayout
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:id="@+id/top_title"
+        android:background="@drawable/top_bg_cust" >
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:tag="bold"
+            android:textColor="#fff"
+		    android:layout_marginLeft="10dp"
+			android:layout_centerVertical="true"		    
+            android:textSize="22dp"
+            android:text="피보호자용" />
+        
+		<ImageButton
+			android:layout_centerVertical="true"
+		    android:layout_alignParentRight="true"
+		    android:layout_marginLeft="10dp"
+		    android:layout_marginRight="10dp"
+		    android:id="@+id/cus_call_btn"
+		    android:layout_width="40dp"
+		    android:layout_height="40dp"
+		    android:background="@drawable/cus_call_btn"
+		    android:contentDescription="전화" />
+		<ImageButton
+		    android:layout_centerVertical="true"
+			android:layout_toLeftOf="@id/cus_call_btn"
+		    android:layout_marginLeft="10dp"	    
+		    android:id="@+id/cus_email_btn"
+		    android:layout_width="40dp"
+		    android:layout_height="40dp"
+		    android:background="@drawable/cus_email_btn"
+		    android:contentDescription="이메일" />
+		<ImageButton
+		    android:layout_centerVertical="true"
+		    android:id="@+id/cus_loc_btn"
+		    android:layout_toLeftOf="@id/cus_email_btn"
+		    android:layout_width="40dp"
+		    android:layout_height="40dp"
+		    android:background="@drawable/cus_loc_btn"
+		    android:contentDescription="내위치" />		        
+    </RelativeLayout>
+    
     <LinearLayout 
+        android:layout_below="@id/top_title"
 	    android:layout_width="fill_parent"
-	    android:layout_height="0dip"
+	    android:layout_height="match_parent"
 	    android:orientation="vertical"
 	    android:layout_weight="1"
 	    android:id="@+id/map_parent">        
 		      
     </LinearLayout>
- 
+    
     <LinearLayout 
+        android:id="@+id/bottom_box"
+        android:layout_alignParentBottom="true"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:orientation="horizontal">        
@@ -25,5 +73,15 @@
 		    android:layout_height="wrap_content"
              />
     </LinearLayout>
+    
+    
+    <LinearLayout 
+        android:layout_above="@id/bottom_box"
+	    android:layout_width="fill_parent"
+	    android:layout_height="70dp"
+	    android:orientation="vertical"
+	    android:background="@drawable/txt_win_bg"  >      
 
-</LinearLayout>
+   </LinearLayout>    
+
+</RelativeLayout>

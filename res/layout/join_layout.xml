@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f8f8f8"       
+    android:orientation="vertical" >
+    
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#665544" >
+
+        <TextView
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#ffffff"
+            android:textSize="20sp"
+	        android:text="@string/join_title"
+	   		android:tag="bold" />
+    </RelativeLayout>  
+  
+   	<RelativeLayout
+   	    android:layout_width="match_parent"
+   	    android:layout_height="match_parent"
+   	    android:layout_weight="1">
+	    <!-- 사진 보기 -->
+	    <ImageView
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:id="@+id/avata_image"
+	        />        
+	        
+	    <!-- 사진 등록 -->
+	    <ImageButton
+	        android:layout_centerInParent="true"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:id="@+id/pic_reg_btn"
+	        android:background="@drawable/add_photo"
+	        />
+    </RelativeLayout> 
+    <!-- 아이디 -->
+    <TextView
+        style="@style/label"
+        android:text="@string/join_name_label"
+        android:tag="bold"/>
+
+    <EditText
+        style="@style/input"
+        android:hint="@string/hint_name"
+        android:inputType="textPersonName"
+   		android:id="@+id/join_name"  />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#e5e5e5" />
+    
+    
+    <!-- 비밀번호 -->
+    <TextView
+        style="@style/label"
+        android:text="@string/join_pwd_label"
+        android:tag="bold"/>
+
+    <EditText
+        style="@style/input"
+        android:hint="@string/hint_pwd"
+        android:inputType="textPassword"
+   		android:id="@+id/join_pwd"  />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#e5e5e5" />
+        
+    
+     <!-- 비밀번호 확인 -->
+    <TextView
+        style="@style/label"
+        android:text="@string/join_re_pwd_label"
+        android:tag="bold"/>
+
+    <EditText
+        style="@style/input"
+        android:hint="@string/hint_re_pwd"
+        android:inputType="textPassword"
+   		android:id="@+id/join_re_pwd"  />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#e5e5e5" />
+    
+    <!-- 등록 -->
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/register_btn"
+        android:id="@+id/register_btn"
+        />    
+
+</LinearLayout>
