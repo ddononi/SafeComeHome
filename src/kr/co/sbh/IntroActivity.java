@@ -2,6 +2,7 @@ package kr.co.sbh;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -38,7 +39,18 @@ public class IntroActivity extends BaseActivity {
 	public boolean onTouchEvent(MotionEvent event) {
 		// TODO Auto-generated method stub
 		  if ( event.getAction() == MotionEvent.ACTION_DOWN ){
-			 Intent intent =  new Intent(this, MapActivity.class);
+			 SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
+			 Intent intent;
+			 if(sp.getBoolean("isSelected", false)){		// 모드 선택 되었으면
+				 if(sp.getBoolean("isParent", false)){	// 부모(보호자 모드)인지
+					 intent =  new Intent(this, PathActivity.class);
+				 }else{	// 아동(피보호자) 모드
+					 intent =  new Intent(this, MapActivity.class);
+				 }
+			 }else{
+				 // 모드 선택 엑티비티로..
+				 intent =  new Intent(this, MenuActivity.class);
+			 }
 			 startActivity(intent);
 			 finish();
 			 return true;

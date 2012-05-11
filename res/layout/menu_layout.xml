@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="#f8f8f8" >
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="모드를 선택해 주세요."
+        android:gravity="center"
+        android:textColor="#FE8111"
+        android:textSize="20sp"
+        android:layout_marginTop="100dp"
+        />    
+
+    <Button
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/guard_btn"
+        android:text="보호자로 시작하기"
+        android:onClick="mOnClick"
+        android:id="@+id/parent_mode"
+        />
+    
+    <Button
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/child_btn"
+        android:text="피보호자로 시작하기"
+        android:onClick="mOnClick"
+        android:id="@+id/child_mode"
+        />    
+ </LinearLayout>

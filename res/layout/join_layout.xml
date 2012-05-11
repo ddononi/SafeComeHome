@@ -1,104 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#f8f8f8"       
-    android:orientation="vertical" >
-    
-    <RelativeLayout
+    android:background="#f8f8f8" >
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="#665544" >
+        android:layout_height="match_parent"
+        android:background="#f8f8f8"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="#665544" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:tag="bold"
+                android:text="@string/join_title"
+                android:textColor="#ffffff"
+                android:textSize="20sp" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1" >
+
+            <!-- 사진 보기 -->
+
+            <ImageView
+                android:id="@+id/avata_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- 사진 등록 -->
+
+            <ImageButton
+                android:id="@+id/pic_reg_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="@drawable/add_photo" />
+        </RelativeLayout>
+        <!-- 이름 -->
 
         <TextView
-            android:layout_centerInParent="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#ffffff"
-            android:textSize="20sp"
-	        android:text="@string/join_title"
-	   		android:tag="bold" />
-    </RelativeLayout>  
-  
-   	<RelativeLayout
-   	    android:layout_width="match_parent"
-   	    android:layout_height="match_parent"
-   	    android:layout_weight="1">
-	    <!-- 사진 보기 -->
-	    <ImageView
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:id="@+id/avata_image"
-	        />        
-	        
-	    <!-- 사진 등록 -->
-	    <ImageButton
-	        android:layout_centerInParent="true"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:id="@+id/pic_reg_btn"
-	        android:background="@drawable/add_photo"
-	        />
-    </RelativeLayout> 
-    <!-- 아이디 -->
-    <TextView
-        style="@style/label"
-        android:text="@string/join_name_label"
-        android:tag="bold"/>
+            style="@style/label"
+            android:tag="bold"
+            android:text="@string/join_name_label" />
 
-    <EditText
-        style="@style/input"
-        android:hint="@string/hint_name"
-        android:inputType="textPersonName"
-   		android:id="@+id/join_name"  />
+        <EditText
+            android:id="@+id/join_name"
+            style="@style/input"
+            android:hint="@string/hint_name"
+            android:inputType="textPersonName" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="2px"
-        android:background="#e5e5e5" />
-    
-    
-    <!-- 비밀번호 -->
-    <TextView
-        style="@style/label"
-        android:text="@string/join_pwd_label"
-        android:tag="bold"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="2px"
+            android:background="#e5e5e5" />
 
-    <EditText
-        style="@style/input"
-        android:hint="@string/hint_pwd"
-        android:inputType="textPassword"
-   		android:id="@+id/join_pwd"  />
+        <!-- 주 보호자 전화번호 -->
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="2px"
-        android:background="#e5e5e5" />
-        
-    
-     <!-- 비밀번호 확인 -->
-    <TextView
-        style="@style/label"
-        android:text="@string/join_re_pwd_label"
-        android:tag="bold"/>
+        <TextView
+            style="@style/label"
+            android:tag="bold"
+            android:text="@string/join_parent_phone" />
 
-    <EditText
-        style="@style/input"
-        android:hint="@string/hint_re_pwd"
-        android:inputType="textPassword"
-   		android:id="@+id/join_re_pwd"  />
+        <EditText
+            android:id="@+id/phone1"
+            style="@style/input"
+            android:hint="@string/hint_parent_phone"
+            android:inputType="phone" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="2px"
-        android:background="#e5e5e5" />
-    
-    <!-- 등록 -->
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/register_btn"
-        android:id="@+id/register_btn"
-        />    
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="2px"
+            android:background="#e5e5e5" />
 
-</LinearLayout>
+        <!-- 보조 보호자 전화번호 -->
+
+        <TextView
+            style="@style/label"
+            android:tag="bold"
+            android:text="@string/join_parent_phone2" />
+
+        <EditText
+            android:id="@+id/phone2"
+            style="@style/input"
+            android:hint="@string/hint_parent_phone2"
+            android:inputType="phone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="2px"
+            android:background="#e5e5e5" />
+
+        <!-- 이메일 -->
+
+        <TextView
+            style="@style/label"
+            android:tag="bold"
+            android:text="@string/join_parent_email" />
+
+        <EditText
+            android:id="@+id/email"
+            style="@style/input"
+            android:hint="@string/hint_email"
+            android:inputType="textEmailAddress" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="2px"
+            android:background="#e5e5e5" />
+
+        <!-- 등록 -->
+
+        <Button
+            android:id="@+id/register_btn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/trace_btn"
+            android:hint="@string/register_btn"
+            android:textColor="#fff"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+</ScrollView>

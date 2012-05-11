@@ -7,12 +7,18 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.widget.Toast;
 
 /**
  * 기본 설정 베이스 액티비티
  *
  */
 public class BaseActivity extends Activity {
+	/* app setting */
+	public final static String  PREFER = "sbh_preference";
+	
     /* Debug setting */
     public static final String DEBUG_TAG = "sbh";
 
@@ -20,7 +26,15 @@ public class BaseActivity extends Activity {
     public static final String SERVER_URL = "ddononi.cafe24.com";	//	서버 주소
     public static final int MAX_SERVER_CONNECT_COUNT = 5;	//	최대 서버 연결 회수
     public static final String GET_URL = "/safeComeHome/loadPath.php";	// 경로 가져오기
-
+    public static final int MAX_FILE_NAME_LENGTH = 100;			// 최대 파일 이름
+    public static final int MAX_FILE_SIZE = 5242880;			// 최대 사진 파일 전송 사이즈 5 Mb
+    public static final int SERVER_FTP_PORT = 21;
+   // public static final int SERVER_TCP_PORT = 5379;
+    public static final String FTP_NAME = "ddononi";			// ************해당 ftp id 로 수정***********************//
+    public static final String FTP_PASSWORD = "goqkfkrl01";		// ************해당 ftp pass 로 수정***********************//
+    public static final String UPLOAD_URL = "/safeComeHome/insert.php";	// 유저 등록 url
+    public static final String FTP_PATH = "/www/safeComeHome/user_images/";	//	ftp path
+    
     /* map */
     public static final String MAP_KEY = "15e7687bc114182c8e799ff28d716d48ae81a2ef";
     public static final String DAUM_LOCAL_KEY = "1a4150ac00469d2392fab7b8c0ff9b076dc07ad1";
@@ -100,6 +114,58 @@ public class BaseActivity extends Activity {
 		ad.setTitle("도움말").setMessage(str)
 		.setPositiveButton("확인",null).show();
     }
+    
+	/**
+	 * 네트워크망을 사용가능한지 혹은 연결되어있는지 확인한다.
+	 * msgFlag가 false이면 현재 연결되어 있는 네트워크를 알려준다.
+	 * 네트워크망 연결 불가시 사용자 에게 다이얼로그창을 띄어 알린다.
+	 * @param msgFlag
+	 * 		Toast 메세지  사용여부
+	 * @return
+	 *		네트워크 사용가능 여부
+	 */
+	public boolean checkNetWork(final boolean msgFlag) {
+		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo ni = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		// boolean isWifiAvail = ni.isAvailable();
+		boolean isWifiConn = ni.isConnectedOrConnecting();
+		ni = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		// boolean isMobileAvail = ni.isAvailable();
+		boolean isMobileConn = ni.isConnectedOrConnecting();
+		if (isWifiConn) {
+			if (msgFlag == false) {
+				Toast.makeText(this, "Wi-Fi망에 접속중입니다.",
+						Toast.LENGTH_SHORT).show();
+			}
+		} else {
+			if (msgFlag == false) {
+				Toast.makeText(this, "3G망에 접속중입니다.",
+						Toast.LENGTH_SHORT).show();
+			}
+		}
+
+		if (!isMobileConn && !isWifiConn) {
+			/*
+			 * 네트워크 연결이 되지 않을경우 이전 화면으로 돌아간다.
+			 */
+			new AlertDialog.Builder(this)
+			.setTitle("알림")
+			.setMessage(
+					"Wifi 혹은 3G망이 연결되지 않았거나 "
+							+ "원활하지 않습니다.네트워크 확인후 다시 접속해 주세요!")
+			.setPositiveButton("닫기",
+					new DialogInterface.OnClickListener() {
+						public void onClick(final DialogInterface dialog,
+								final int which) {
+							dialog.dismiss(); // 닫기
+							finish();
+						}
+					}).show();
+			return false;
+		}
+		return true;
+
+	}    
 
 }
 
