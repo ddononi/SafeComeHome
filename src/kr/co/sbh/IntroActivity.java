@@ -1,10 +1,29 @@
 package kr.co.sbh;
 
+import java.io.IOException;
+import java.util.Vector;
+
+import net.daum.mf.map.api.MapPoint;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
+import android.text.Html;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -20,6 +39,7 @@ public class IntroActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.intro_layout);
        	this.init();	// 초기화 
+
     }
     
     /**
@@ -37,6 +57,8 @@ public class IntroActivity extends BaseActivity {
 	 */
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
+			
+
 		// TODO Auto-generated method stub
 		  if ( event.getAction() == MotionEvent.ACTION_DOWN ){
 			 SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
@@ -55,7 +77,40 @@ public class IntroActivity extends BaseActivity {
 			 finish();
 			 return true;
 		  }
-		  
+	
 		  return super.onTouchEvent(event);
+
+			
+			
 	}
+
+	private void sendEmail() {
+		new sendEmailToServer().start();
+	}
+	
+	/**
+	 * 서버에 저장된 보호자의 정보를 가지고 서버에서 이메일을 발송한다.
+	 */
+	private class sendEmailToServer extends Thread{
+
+		@Override
+		public void run() {
+			super.run();
+			try {
+					HttpGet request = new HttpGet("http://ddononi.cafe24.com/safeComeHome/sendEmail.php");
+	                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+	                HttpClient client = new DefaultHttpClient();
+	                final String responseBody = client.execute(request, responseHandler);	// 전송
+	                if (responseBody.trim().contains("ok")) {
+	                	Log.i(BaseActivity.DEBUG_TAG, " 이메일 발송");
+	                }
+
+	            } catch (ClientProtocolException e) {
+	            	Log.e(BaseActivity.DEBUG_TAG, "발송 실패 ", e);
+	            } catch (IOException e) {
+	            	Log.e(BaseActivity.DEBUG_TAG, "io 에러: ", e);
+	            }
+		}
+	}	
+	
 }

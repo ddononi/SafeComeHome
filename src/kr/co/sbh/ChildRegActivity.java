@@ -204,6 +204,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		phoneEt = (EditText)findViewById(R.id.phone1);
 		subPhoneEt = (EditText)findViewById(R.id.phone2);
 		picIv = (ImageView)findViewById(R.id.avata_image);
+		emailEt = (EditText)findViewById(R.id.email);
 		ImageButton joinBtn = (ImageButton)findViewById(R.id.pic_reg_btn);
 		Button regBtn = (Button)findViewById(R.id.register_btn);
 		// 이벤트 설정
@@ -269,9 +270,14 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	 */
 	private String getExtension(final String oldFile, final String sep) {
 		// 확장자 가져오기
-		int index = oldFile.lastIndexOf(sep);
-		String ext = oldFile.substring(index).toLowerCase();
-		return ext;
+		
+		try{
+			int index = oldFile.lastIndexOf(sep);
+			String ext = oldFile.substring(index).toLowerCase();
+			return ext;
+		}catch(Exception e){
+			return "";	// 
+		}
 	}
 
 	/**
@@ -312,9 +318,11 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	 */
 	private void registerUser() {
 		// TODO Auto-generated method stub
-		new AsyncTaskUserInfoUpload().execute(nameEt.getText().toString(),
-				phoneEt.getText().toString(), subPhoneEt.getText().toString(), 
-				 emailEt.getText().toString(), selectedFile);
+		String name = nameEt.getText().toString();
+		String phone = nameEt.getText().toString();
+		String subPhone = subPhoneEt.getText().toString();
+		String email = emailEt.getText().toString();
+		new AsyncTaskUserInfoUpload().execute(name, phone, subPhone, email, selectedFile);
 	}
 
 	/*
@@ -361,12 +369,12 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		        SharedPreferences settings = getSharedPreferences(PREFER, MODE_PRIVATE);
 		        SharedPreferences.Editor editor = settings.edit();
 		        editor.putBoolean("joined", true);
-		        editor.putString("name", nameEt.getText().toString());
+		        editor.putString("wardName", nameEt.getText().toString());
 		        editor.putString("phone1", phoneEt.getText().toString());
 		        editor.putString("phone2", subPhoneEt.getText().toString());
 		        editor.putString("email", emailEt.getText().toString());
 		        
-		        editor.putString("avataImg",  receiveFiles);
+		        editor.putString("wardImg",  receiveFiles);
 		        editor.commit();
 
 				Intent intent = new Intent(ChildRegActivity.this,
@@ -421,26 +429,25 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 					.setDeviceInfo((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));	// 디바이스 정보 얻어괴
 			try {
 				/* 파일 업로드 */
-				String imageFile = params[3].substring(params[3].lastIndexOf("/") + 1); // 실제 파일명만	 가졍옴
+				String imageFile = params[4].substring(params[4].lastIndexOf("/") + 1); // 실제 파일명만	 가졍옴
 				// 서버에 이미지 중복 방지를 위해 이름 바꾸기 yyyymmdd_hhmmss_Cellnum_01.xxx
 				String receiveFiles = getDateTime() + "_" + di.getDeviceNumber() +  getExtension(imageFile, ".");
 
 				// 파일 업로드
-				if (!mFtp.upload(params[3], receiveFiles)) {
+				if (!mFtp.upload(params[4], receiveFiles)) {
 					// 업로드 에러시
 					return false;
 				} else {
-					 vars.add(new BasicNameValuePair("user_image", imageFile));	// 파일이름
-					 this.receiveFiles = receiveFiles;
+					// this.receiveFiles = receiveFiles;
 				}
 				// HTTP post 메서드를 이용하여 데이터 업로드 처리
 	            vars.add(new BasicNameValuePair("name", params[0]));			// 이름
 	            vars.add(new BasicNameValuePair("phone1", params[1]));			// 주전화번호
 	            vars.add(new BasicNameValuePair("phone2", params[2]));			// 보조 전화번호
 	            vars.add(new BasicNameValuePair("email", params[3]));			// 이메일
-	            vars.add(new BasicNameValuePair("user_img", receiveFiles));		// 이미지명
+	            vars.add(new BasicNameValuePair("user_image", receiveFiles));		// 이미지명
 	            vars.add(new BasicNameValuePair("child_phone", di.getDeviceNumber()));	// 사용자 전화번호
-	            String url = "http://" + SERVER_URL + UPLOAD_URL;// + "?" + URLEncodedUtils.format(vars, null);
+	            String url = "http://" + SERVER_URL + UPLOAD_URL;	// + "?" + URLEncodedUtils.format(vars, null);
 	            HttpPost request = new HttpPost(url);
 	            // 한글깨짐을 방지하기 위해 utf-8 로 인코딩시키자
 				UrlEncodedFormEntity entity = null;
@@ -471,11 +478,10 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 							}
 						});
 						*/
+	                	Log.i(DEBUG_TAG, responseBody);
 	                }
-	            } catch (ClientProtocolException e) {
-	            	Log.e(DEBUG_TAG, "Failed to get playerId (protocol): ", e);
 	            } catch (IOException e) {
-	            	Log.e(DEBUG_TAG, "Failed to get playerId (io): ", e);
+	            	Log.e(DEBUG_TAG, "io error: ", e);
 	            }
 
 

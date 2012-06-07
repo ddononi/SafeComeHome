@@ -5,12 +5,16 @@
     android:versionName="1.0" >
 
     <uses-sdk android:minSdkVersion="10" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
+
         android:icon="@drawable/icon"
         android:label="@string/app_name" >
         <activity
-            android:name=".IntroActivity"
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:name="IntroActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,13 +22,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:theme="@android:style/Theme.NoTitleBar" android:name=".ChildRegActivity"></activity> 
-		<activity android:theme="@android:style/Theme.NoTitleBar" android:name=".MapActivity"></activity>   
+        <activity theme="@android:style/Theme.NoTitleBar" android:name=".ChildRegActivity"></activity> 
+		<activity android:screenOrientation="landscape"  android:theme="@android:style/Theme.NoTitleBar" android:name=".EmergencyCameraActivity"></activity>   
+		<activity android:theme="@android:style/Theme.NoTitleBar" android:name=".MapActivity"></activity>   		
 		<activity android:theme="@android:style/Theme.NoTitleBar" android:name=".InfoActivity"></activity>
 		<activity android:theme="@android:style/Theme.NoTitleBar" android:name=".MenuActivity"></activity>
 		<activity android:theme="@android:style/Theme.NoTitleBar" android:name=".PathActivity"></activity>
 		<service android:name="LocationService"></service>      
     </application>
+    <uses-permission android:name="android.permission.RECORD_VIDEO" />  
+	<uses-feature android:name="android.hardware.camera"/>
+    <uses-feature android:name="android.hardware.camera.autofocus"/>    
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />

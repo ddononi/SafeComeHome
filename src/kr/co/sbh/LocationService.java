@@ -1,7 +1,10 @@
 package kr.co.sbh;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Vector;
 
 import net.daum.mf.map.api.MapPoint;
@@ -16,7 +19,6 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -107,7 +109,7 @@ public class LocationService extends Service {
 				uts.start();
 			}else{
 				// 출발후면
-				// 이전 위치갑과 비교해 정확한 위치라면 list에 넣어준다.
+				// 이전 위치값과 비교해 정확한 위치라면 list에 넣어준다.
 				if(MapActivity.isStarted && GeoUtils.isBetterLocation(mLocation,location )){		
 					if(GeoUtils.distanceKm(mLocation.getLatitude(), mLocation.getLongitude(),
 							location.getLatitude(), location.getLongitude())  >= 0.01){	//10 미터이상 이동했을경우만 패스 저장
@@ -120,7 +122,14 @@ public class LocationService extends Service {
 						alarmCount = 0;
 					}
 				}else{
+				
+					// 위급 상황으로 판단하여 자동 동영상 녹화 및 저장후 
+					// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
+					Intent intent = new Intent(LocationService.this, EmergencyCameraActivity.class);
+					startActivity(intent);
+
 					// 일정주기동안 움직임이 없을경우 보호자에게 전화를 건다.
+					/*
 					if(alarmCount++ == BaseActivity.CALL_COUNT){
 						Log.i(BaseActivity.DEBUG_TAG, "call");
 						// 전화 걸기
@@ -130,6 +139,8 @@ public class LocationService extends Service {
 						it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 						startActivity(it);
 					}
+					*/
+					
 				}
 			}
 			Log.i(BaseActivity.DEBUG_TAG, "위치이동~~!~!");
@@ -269,5 +280,27 @@ public class LocationService extends Service {
 	            }
 		}
 	}	
+	
+	public static void email(Context context, String emailTo, String emailCC,
+		    String subject, String emailText, List<String> filePaths){
+		    //need to "send multiple" to get more than one attachment
+		    final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND_MULTIPLE);
+		    emailIntent.setType("plain/text");
+		    emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, 
+		        new String[]{emailTo});
+		    emailIntent.putExtra(android.content.Intent.EXTRA_CC, 
+		        new String[]{emailCC});
+		    //has to be an ArrayList
+		    ArrayList<Uri> uris = new ArrayList<Uri>();
+		    //convert from paths to Android friendly Parcelable Uri's
+		    for (String file : filePaths)
+		    {
+		        File fileIn = new File(file);
+		        Uri u = Uri.fromFile(fileIn);
+		        uris.add(u);
+		    }
+		    emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+		    context.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+		}
 
 }
