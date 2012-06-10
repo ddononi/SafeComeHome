@@ -50,7 +50,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	// 레코더 객체 생성
 	private MediaRecorder recorder = null;
 	// 녹화 시간 - 10초
-	private static final int RECORDING_TIME = 10000;
+	private static final int RECORDING_TIME = 30000;
 
 	// 카메라 프리뷰를 설정한다
 	private void setCameraPreview(SurfaceHolder holder) {
@@ -301,7 +301,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			// 파일 전송 결과를 출력
 			if (result) { // 파일 전송이 정상이면
 				sendEmail();	// 보호자에게 메일 발송
-				Intent intent = new Intent(EmergencyCameraActivity.this, MenuActivity.class);
+				Intent intent = new Intent(EmergencyCameraActivity.this, WardModeActivity.class);
 				startActivity(intent);
 				finish();
 			} else {

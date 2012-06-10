@@ -23,6 +23,7 @@ import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.PendingIntent.CanceledException;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -104,30 +105,35 @@ public class LocationService extends Service {
 				Toast.makeText(getApplicationContext(), "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
 				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
 				// 경로 그리기 시작
-				MapActivity.pathList.add(point);	// 경로를 저장한다.							
+				WardModeActivity.pathList.add(point);	// 경로를 저장한다.							
 				uts = new UploadToServer(point, "start");
 				uts.start();
 			}else{
 				// 출발후면
 				// 이전 위치값과 비교해 정확한 위치라면 list에 넣어준다.
-				if(MapActivity.isStarted && GeoUtils.isBetterLocation(mLocation,location )){		
-					if(GeoUtils.distanceKm(mLocation.getLatitude(), mLocation.getLongitude(),
-							location.getLatitude(), location.getLongitude())  >= 0.01){	//10 미터이상 이동했을경우만 패스 저장
+				if(WardModeActivity.isStarted && GeoUtils.isBetterLocation(mLocation,location )){		
+					//if(GeoUtils.distanceKm(mLocation.getLatitude(), mLocation.getLongitude(),
+					//		location.getLatitude(), location.getLongitude())  >= 0.01){	//10 미터이상 이동했을경우만 패스 저장
 						MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-						MapActivity.pathList.add(point);	// 경로를 저장한다.						
+						WardModeActivity.pathList.add(point);	// 경로를 저장한다.						
 						// 서버에 업로드
 						uts = new UploadToServer(point, "");
 						uts.start();	
 						
 						alarmCount = 0;
-					}
+					//}
 				}else{
-				
+
 					// 위급 상황으로 판단하여 자동 동영상 녹화 및 저장후 
 					// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
-					Intent intent = new Intent(LocationService.this, EmergencyCameraActivity.class);
-					startActivity(intent);
-
+					Intent intent = new Intent(getBaseContext(), EmergencyCameraActivity.class);
+					PendingIntent pi = PendingIntent.getActivity(getBaseContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);					
+					try {
+						pi.send();
+					} catch (CanceledException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					// 일정주기동안 움직임이 없을경우 보호자에게 전화를 건다.
 					/*
 					if(alarmCount++ == BaseActivity.CALL_COUNT){
@@ -180,7 +186,7 @@ public class LocationService extends Service {
 
 		String provider = locationManager.getBestProvider(criteria, true);
 		// 1분 간격 
-		locationManager.requestLocationUpdates(provider, 1000 * 60, 0,
+		locationManager.requestLocationUpdates(provider, 1000 * 60, 10,
 				loclistener);
 		/*
 		 * String provider; // gps 가 켜져 있으면 gps로 먼저 수신 if
@@ -219,7 +225,7 @@ public class LocationService extends Service {
 	private void setNotification(){
 		// MyScheduleActivity 로 엑티비티 설정
 
-		Intent contentIntent = new Intent(this, MapActivity.class);
+		Intent contentIntent = new Intent(this, WardModeActivity.class);
 		contentIntent.putExtra("resume", true);
 		// 알림클릭시 이동할 엑티비티 설정
 		PendingIntent theappIntent = PendingIntent.getActivity(this, 0,contentIntent, 0);
@@ -261,7 +267,7 @@ public class LocationService extends Service {
 	            vars.add(new BasicNameValuePair("lng", String.valueOf(point.getMapPointGeoCoord().longitude)));	
 	            vars.add(new BasicNameValuePair("flag", flag));	
 	            //  vars.add(new BasicNameValuePair("flag",));	
-	            HttpPost request = new HttpPost("http://" + BaseActivity.SERVER_URL + "upload.php");
+	            HttpPost request = new HttpPost("http://" + BaseActivity.SERVER_URL + BaseActivity.PATH_UPLOAD_URL);
 	           // 한글깨짐을 방지하기 위해 utf-8 로 인코딩시키자
 				UrlEncodedFormEntity entity = null;
 				entity = new UrlEncodedFormEntity(vars, "UTF-8");

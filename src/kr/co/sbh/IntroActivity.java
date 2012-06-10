@@ -65,9 +65,10 @@ public class IntroActivity extends BaseActivity {
 			 Intent intent;
 			 if(sp.getBoolean("isSelected", false)){		// 모드 선택 되었으면
 				 if(sp.getBoolean("isParent", false)){	// 부모(보호자 모드)인지
-					 intent =  new Intent(this, PathActivity.class);
+					// intent =  new Intent(this, PathActivity.class);
+					 intent =  new Intent(this, WardModeActivity.class);
 				 }else{	// 아동(피보호자) 모드
-					 intent =  new Intent(this, MapActivity.class);
+					 intent =  new Intent(this, WardModeActivity.class);
 				 }
 			 }else{
 				 // 모드 선택 엑티비티로..

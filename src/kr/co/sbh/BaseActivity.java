@@ -33,6 +33,7 @@ public class BaseActivity extends Activity {
     public static final String FTP_NAME = "ddononi";			// ************해당 ftp id 로 수정***********************//
     public static final String FTP_PASSWORD = "goqkfkrl01";		// ************해당 ftp pass 로 수정***********************//
     public static final String UPLOAD_URL = "/safeComeHome/insert.php";	// 유저 등록 url
+    public static final String PATH_UPLOAD_URL = "/safeComeHome/upload_latlng.php";	// 경로 업로드 url    
     public static final String FTP_PATH = "/www/safeComeHome/uploads/";	//	ftp path
     public static final String EMAIL_SEND_URL = "/safeComeHome/sendEmail.php";
     

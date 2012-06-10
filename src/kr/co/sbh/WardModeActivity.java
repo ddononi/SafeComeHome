@@ -2,6 +2,7 @@ package kr.co.sbh;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPOIItem.MarkerType;
 import net.daum.mf.map.api.MapPOIItem.ShowAnimationType;
@@ -19,11 +20,13 @@ import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -32,6 +35,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 /**
@@ -39,24 +43,26 @@ import android.widget.Toast;
  * 경로를 추적하고 추적된 경로를 서버로 전송되어 디비에 저장된다.
  * 추적이 완료되면 전송을 중지하고 결과 화면으로 넘긴다.
  */
-public class MapActivity extends BaseActivity implements OpenAPIKeyAuthenticationResultListener, MapViewEventListener,
+public class WardModeActivity extends BaseActivity implements OpenAPIKeyAuthenticationResultListener, MapViewEventListener,
 CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoCodingResultListener{
 	private MapView mapView;
 	private MapPOIItem poiItem;
 	private MapReverseGeoCoder reverseGeoCoder = null;
 	private MapPolyline tracePath = new MapPolyline();
-	
+	private SharedPreferences sp;								// 공유 환경설정
 	
 	private LocationManager locationManager;
 	private Location mLocation = null;
 	protected static List<MapPoint> pathList = new ArrayList<MapPoint>();	// 경로를 저장할 collection list
 	private Button traceBtn;
 	protected static boolean isStarted = false;	// 출발여부
+	protected static boolean isEnded = false;	// 도착여부
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_layout);
+        sp = getSharedPreferences(PREFER, MODE_PRIVATE);
         getLocation();
         initMap();
         
@@ -88,7 +94,16 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
         }
         traceBtn = (Button)findViewById(R.id.trace_btn);
         traceBtn.setClickable(false);	// 현재 위치를 찾기 전까지는 클릭 잠금
-        traceBtn.setOnClickListener(this);
+        
+        //	 내위치 찾기 버튼
+        ImageButton myLocBtn = (ImageButton)findViewById(R.id.loc_btn);
+        // 긴급 발송버튼
+        ImageButton emailBtn = (ImageButton)findViewById(R.id.email_btn);
+        // 바로 전화 걸기 버튼
+        ImageButton callBtn = (ImageButton)findViewById(R.id.call_btn);
+        myLocBtn.setOnClickListener(this);
+        emailBtn.setOnClickListener(this);
+        callBtn.setOnClickListener(this);
     }
 
 	/**
@@ -152,11 +167,13 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			Log.w(DEBUG_TAG, "onLocationChanged");
 			// 현재 위치정보가 없을때 한번만 현재 위치로 중심을 이동한다.
 			if(mLocation == null){
-				Toast.makeText(MapActivity.this, "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
+				Toast.makeText(WardModeActivity.this, "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
 				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
 				mapView.setMapCenterPoint(point, true);
 				// 추적 버튼 풀기
 				traceBtn.setClickable(true);
+				// 이벤트 리스너 달아주기
+		        traceBtn.setOnClickListener(WardModeActivity.this);
 			}
 			mLocation = location;	// 위치 받아오기
 		}
@@ -347,21 +364,48 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	}
 
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
+		Intent intent;
 		switch(v.getId()){
 		case R.id.trace_btn:	// 추적 버튼을 눌렀을 경우
 			if(isStarted == false){
+				if(mLocation == null){	// 위치를 찾을수 없을 경우
+					Toast.makeText(WardModeActivity.this, "현재 위치를 찾을수 없습니다.", Toast.LENGTH_SHORT).show();
+					return;
+				}				
 				isStarted = true;
 				startTrace();	
 				((Button)v).setText("도착");
 			}else{
 				endTrace();	
+				isEnded = true;
 				// 도착완료이면 클릭 버튼을 숨긴다.
 				v.setVisibility(View.GONE);
 				// 위치 리스너 제거
 				 locationManager.removeUpdates(loclistener);
 			}
 			break;
+		case R.id.loc_btn :	// 현재 위치 찾기
+			if(mLocation != null){	// 현재 위치 정보가 있을때만
+				MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
+				mapView.setMapCenterPoint(point, true);
+				Toast.makeText(this, "현재 위치로 이동합니다.", Toast.LENGTH_SHORT).show();
+			}else{		
+				// 현재 위치 수신이 아직 되지 않았을 경우
+				Toast.makeText(this, "현재를 찾을수 없습니다.", Toast.LENGTH_SHORT).show();
+			}
+			break;			
+		case R.id.email_btn :	// 긴급 촬영 모드
+			// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
+			intent = new Intent(this, EmergencyCameraActivity.class);
+			startActivity(intent);
+			break;
+		case R.id.call_btn : 		// 보호자에게 전화하기	
+			// 보호자에게 전화걸기를 시도
+			// 전화번호가 없을경우 112로 신고
+			Uri uri = Uri.parse("tel:" + sp.getString("phone1", "112") );
+			intent = new Intent(Intent.ACTION_CALL,uri);
+			startActivity(intent);
+			break;			
 		}
 	}
 
@@ -414,6 +458,17 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		stopService(serviceIntent);		
 	
 	}
+	
+
+	@Override
+	public void onBackPressed() {	//  뒤로 가기버튼 클릭시 종료 여부
+		// 도착 처리를 했으면 앱 종료 처리를 묻고
+		// 그렇지 않으면 종료확인을 묻지 않고 나간다.
+		if(isEnded == false){
+			return;
+		}
+		finishDialog(this);
+	}	
 	
 	
 	

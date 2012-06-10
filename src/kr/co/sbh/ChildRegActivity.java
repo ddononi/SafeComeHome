@@ -84,7 +84,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
     	        prefEditor.commit();
 
     	        // 완료되면 메인페이지로
-    	        Intent intent =  new Intent(ChildRegActivity.this, MapActivity.class);
+    	        Intent intent =  new Intent(ChildRegActivity.this, WardModeActivity.class);
     	        finish();
     			startActivity(intent);
     		}else{
@@ -373,12 +373,12 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		        editor.putString("phone1", phoneEt.getText().toString());
 		        editor.putString("phone2", subPhoneEt.getText().toString());
 		        editor.putString("email", emailEt.getText().toString());
-		        
+		        editor.putBoolean("isSelected", true);										
 		        editor.putString("wardImg",  receiveFiles);
 		        editor.commit();
 
 				Intent intent = new Intent(ChildRegActivity.this,
-						MapActivity.class);
+						WardModeActivity.class);
 				startActivity(intent);
 				finish();
 
