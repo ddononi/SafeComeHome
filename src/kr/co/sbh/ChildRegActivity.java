@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.Vector;
 
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -60,10 +59,11 @@ import android.widget.Toast;
  */
 public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	// element
-	private EditText nameEt;
-	private EditText phoneEt;
-	private EditText subPhoneEt;
-	private EditText emailEt;
+	private EditText nameEt;			// 이름
+	private EditText phoneEt;			// 보호자-1 전화
+	private EditText subPhoneEt;		// 보호자-2 전화
+	private EditText parentEmailEt;		// 보호자 이메일
+	private EditText wardEmailEt;		// 피보호자 이메일
 	private ImageView picIv;
 	private SharedPreferences settings;
 
@@ -204,7 +204,8 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		phoneEt = (EditText)findViewById(R.id.phone1);
 		subPhoneEt = (EditText)findViewById(R.id.phone2);
 		picIv = (ImageView)findViewById(R.id.avata_image);
-		emailEt = (EditText)findViewById(R.id.email);
+		parentEmailEt = (EditText)findViewById(R.id.parent_email);
+		wardEmailEt = (EditText)findViewById(R.id.ward_email);
 		ImageButton joinBtn = (ImageButton)findViewById(R.id.pic_reg_btn);
 		Button regBtn = (Button)findViewById(R.id.register_btn);
 		// 이벤트 설정
@@ -213,6 +214,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	}
 
 
+	@Override
 	public void onClick(final View v) {
 		// TODO Auto-generated method stub
 		switch(v.getId()){
@@ -220,6 +222,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 			new AlertDialog.Builder(this).setTitle("첨부파일 선택")
 				.setItems(R.array.attach,
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(final DialogInterface dialog,
 								final int which) {
 							// 첨부파일 선택 처리 메소드
@@ -270,13 +273,13 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	 */
 	private String getExtension(final String oldFile, final String sep) {
 		// 확장자 가져오기
-		
+
 		try{
 			int index = oldFile.lastIndexOf(sep);
 			String ext = oldFile.substring(index).toLowerCase();
 			return ext;
 		}catch(Exception e){
-			return "";	// 
+			return "";	//
 		}
 	}
 
@@ -299,10 +302,26 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 			return false;
 		}
 
-		if(TextUtils.isEmpty(emailEt.getText())){
-			Toast.makeText(this, "이메일을 입력하세요.", Toast.LENGTH_SHORT).show();
+		if(TextUtils.isEmpty(parentEmailEt.getText())){
+			Toast.makeText(this, "보호자의 이메일을 입력하세요.", Toast.LENGTH_SHORT).show();
 			return false;
-		}		
+		}
+
+		if(MyUtils.isEmailValid(parentEmailEt.getText().toString()) == false){
+			Toast.makeText(this, "보호자의 이메일을 정확히 입력하세요.", Toast.LENGTH_SHORT).show();
+			return false;
+		}
+
+
+		if(TextUtils.isEmpty(wardEmailEt.getText())){
+			Toast.makeText(this, "피보호자의 이메일을 입력하세요.", Toast.LENGTH_SHORT).show();
+			return false;
+		}
+
+		if(MyUtils.isEmailValid(wardEmailEt.getText().toString()) == false){
+			Toast.makeText(this, "피보호자의 이메일을 정확히 입력하세요.", Toast.LENGTH_SHORT).show();
+			return false;
+		}
 
 		if(TextUtils.isEmpty(selectedFile)){
 			Toast.makeText(this, "사용자 이미지를 등록하세요", Toast.LENGTH_SHORT).show();
@@ -317,12 +336,16 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	 * 서버에 피보호자 정보를 등록한다.
 	 */
 	private void registerUser() {
-		// TODO Auto-generated method stub
-		String name = nameEt.getText().toString();
-		String phone = nameEt.getText().toString();
-		String subPhone = subPhoneEt.getText().toString();
-		String email = emailEt.getText().toString();
-		new AsyncTaskUserInfoUpload().execute(name, phone, subPhone, email, selectedFile);
+		// 입력된 정보를 받는 param
+		JoinParams param = new JoinParams();
+		param.name = nameEt.getText().toString();
+		param.phone = phoneEt.getText().toString();
+		param.subPhone = subPhoneEt.getText().toString();
+		param.parentEmail = parentEmailEt.getText().toString();
+		param.wardEmail = wardEmailEt.getText().toString();
+		param.fileName = selectedFile;
+		// 파라미터로 사용자 정보를 넘겨주고 쓰레드로 업로드처리한다.
+		new AsyncTaskUserInfoUpload().execute(param);
 	}
 
 	/*
@@ -350,7 +373,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	 *  업로드 한다.
 	 */
 	private class AsyncTaskUserInfoUpload extends
-			AsyncTask<String, String, Boolean> {
+			AsyncTask<JoinParams, String, Boolean> {
 		ProgressDialog dialog = null;
 		private String receiveFiles;
 
@@ -364,19 +387,19 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 			// 파일 전송 결과를 출력
 			if (result) { // 파일 전송이 정상이면
 
-
 				// 공유환경에 유저 정보 저장
 		        SharedPreferences settings = getSharedPreferences(PREFER, MODE_PRIVATE);
 		        SharedPreferences.Editor editor = settings.edit();
-		        editor.putBoolean("joined", true);
+		        editor.putBoolean("joined", true);					// 다시 가입처리가 안되게 값 설정
 		        editor.putString("wardName", nameEt.getText().toString());
 		        editor.putString("phone1", phoneEt.getText().toString());
 		        editor.putString("phone2", subPhoneEt.getText().toString());
-		        editor.putString("email", emailEt.getText().toString());
-		        editor.putBoolean("isSelected", true);										
+		        editor.putString("wardEmail", wardEmailEt.getText().toString());
+		        editor.putString("parentEmail", parentEmailEt.getText().toString());
 		        editor.putString("wardImg",  receiveFiles);
-		        editor.commit();
+		        editor.commit();		// 커밋으로 공유환경설정에 저장
 
+		        // 피보호자화면으로 이동
 				Intent intent = new Intent(ChildRegActivity.this,
 						WardModeActivity.class);
 				startActivity(intent);
@@ -409,43 +432,44 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		 * @see android.os.AsyncTask#doInBackground(Params[]) 비동기 모드로 전송
 		 */
 		@Override
-		protected Boolean doInBackground(final String... params) {	// 전송중
-
-			// TODO Auto-generated method stub
-			boolean result = false;
-
-			if (!checkNetWork(true)) { // 네트워크 상태 체크
+		protected Boolean doInBackground(final JoinParams... params) {	// 전송중
+			boolean result = false;	// 결과 처리값
+			// 네트워크 상태 체크
+			if (!checkNetWork(true)) {
 				return false;
 			}
 
-			if (!connectFTP()) { // ftp 연결이 안되면
+			 // ftp 연결상태 체크
+			if (!connectFTP()) {
 				return false;
 			}
-
+			// 입력정보 파라미터
+			JoinParams jp = params[0];
 
 			// http 로 보낼 이름 값 쌍 컬랙션
 			Vector<NameValuePair> vars = new Vector<NameValuePair>();
 			DeviceInfo di = DeviceInfo
-					.setDeviceInfo((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));	// 디바이스 정보 얻어괴
+					.setDeviceInfo((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE));	// 디바이스 정보
 			try {
 				/* 파일 업로드 */
-				String imageFile = params[4].substring(params[4].lastIndexOf("/") + 1); // 실제 파일명만	 가졍옴
+				String imageFile = jp.fileName.substring(jp.fileName.lastIndexOf("/") + 1); // 실제 파일명만	 가졍옴
 				// 서버에 이미지 중복 방지를 위해 이름 바꾸기 yyyymmdd_hhmmss_Cellnum_01.xxx
 				String receiveFiles = getDateTime() + "_" + di.getDeviceNumber() +  getExtension(imageFile, ".");
 
 				// 파일 업로드
-				if (!mFtp.upload(params[4], receiveFiles)) {
+				if (!mFtp.upload(jp.fileName, receiveFiles)) {
 					// 업로드 에러시
 					return false;
 				} else {
 					// this.receiveFiles = receiveFiles;
 				}
 				// HTTP post 메서드를 이용하여 데이터 업로드 처리
-	            vars.add(new BasicNameValuePair("name", params[0]));			// 이름
-	            vars.add(new BasicNameValuePair("phone1", params[1]));			// 주전화번호
-	            vars.add(new BasicNameValuePair("phone2", params[2]));			// 보조 전화번호
-	            vars.add(new BasicNameValuePair("email", params[3]));			// 이메일
-	            vars.add(new BasicNameValuePair("user_image", receiveFiles));		// 이미지명
+	            vars.add(new BasicNameValuePair("name", jp.name));			// 이름
+	            vars.add(new BasicNameValuePair("phone1", jp.phone));			// 주전화번호
+	            vars.add(new BasicNameValuePair("phone2", jp.subPhone));			// 보조 전화번호
+	            vars.add(new BasicNameValuePair("parent_email", jp.parentEmail));	// 이메일
+	            vars.add(new BasicNameValuePair("ward_email", jp.wardEmail));		// 이메일
+	            vars.add(new BasicNameValuePair("user_image", receiveFiles));	// 이미지명
 	            vars.add(new BasicNameValuePair("child_phone", di.getDeviceNumber()));	// 사용자 전화번호
 	            String url = "http://" + SERVER_URL + UPLOAD_URL;	// + "?" + URLEncodedUtils.format(vars, null);
 	            HttpPost request = new HttpPost(url);
@@ -453,40 +477,27 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 				UrlEncodedFormEntity entity = null;
 				entity = new UrlEncodedFormEntity(vars, "UTF-8");
 				request.setEntity(entity);
-	            try {
-	                ResponseHandler<String> responseHandler = new BasicResponseHandler();
-	                HttpClient client = new DefaultHttpClient();
-	                final String responseBody = client.execute(request, responseHandler);	// 전송
-	                Log.i(DEBUG_TAG, responseBody);
-	                if (responseBody.trim().contains("ok")) {	// 정상등록
-	                	Log.i(DEBUG_TAG, responseBody);
-	    				  result = true;
-	                }else if (responseBody.contains("fail")) {	// 등록 실패
-	                	ChildRegActivity.this.runOnUiThread(new Runnable() {
-							public void run() {
-								// TODO Auto-generated method stub
-								Toast.makeText(ChildRegActivity.this, "단말기 정보가 있습니다.", Toast.LENGTH_SHORT).show();
-							}
-						});
-	                }else{
-	                	/*
-	                	ChildRegActivity.this.runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								//
-								Toast.makeText(ChildRegActivity.this, "가입 실패~~", Toast.LENGTH_SHORT).show();
-							}
-						});
-						*/
-	                	Log.i(DEBUG_TAG, responseBody);
-	                }
-	            } catch (IOException e) {
-	            	Log.e(DEBUG_TAG, "io error: ", e);
-	            }
-
-
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                HttpClient client = new DefaultHttpClient();
+                final String responseBody = client.execute(request, responseHandler);	// 전송
+                Log.i(DEBUG_TAG, responseBody);
+                if (responseBody.trim().contains("ok")) {	// 정상등록
+                	Log.i(DEBUG_TAG, responseBody);
+    				  result = true;
+                }else if (responseBody.contains("fail")) {	// 등록 실패
+                	ChildRegActivity.this.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							Toast.makeText(ChildRegActivity.this, "단말기 정보가 있습니다.", Toast.LENGTH_SHORT).show();
+						}
+					});
+                }else{
+                	Log.i(DEBUG_TAG, responseBody);
+                }
+            } catch (IOException e) {
+            	Log.e(DEBUG_TAG, "io error: ", e);
 			} catch (Exception e) {
-				dialog.dismiss(); // 프로그레스 다이얼로그 닫기
 				Log.e(DEBUG_TAG,  "파일 업로드 에러", e);
 			}
 
@@ -499,6 +510,18 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	public void onBackPressed() {	//  뒤로 가기버튼 클릭시 종료 여부
 		finishDialog(this);
 
+	}
+
+	/**
+	 *	회원 가입시 필요한 파라미터 클래스
+	 */
+	public class JoinParams{
+		String name;
+		String phone;
+		String subPhone;
+		String parentEmail;
+		String wardEmail;
+		String fileName;
 	}
 
 }

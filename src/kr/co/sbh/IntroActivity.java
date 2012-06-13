@@ -1,68 +1,57 @@
 package kr.co.sbh;
 
 import java.io.IOException;
-import java.util.Vector;
 
-import net.daum.mf.map.api.MapPoint;
-
-import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
-import android.text.Html;
 import android.util.Log;
 import android.view.MotionEvent;
 
 /**
- *	첫시작 엑티비티 
+ *	첫시작 엑티비티
  *	전화정보를 가져오고 터치시 다음화면으로 이동
  */
 public class IntroActivity extends BaseActivity {
 	String cellNum = "";
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.intro_layout);
-       	this.init();	// 초기화 
+       	this.init();	// 초기화
 
     }
-    
+
     /**
      *	초기설정
-     *  전화번호 가져오기 및 전화번호 없을시 인증 하기 
+     *  전화번호 가져오기 및 전화번호 없을시 인증 하기
      */
     private void init(){
         DeviceInfo di = DeviceInfo.setDeviceInfo((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE)) ;
         this.cellNum = di.getDeviceNumber();
         Log.i(DEBUG_TAG, "tel :" + di.getDeviceNumber());
     }
-    
+
 	/**
 	 *  다음 화면으로 넘기기
 	 */
 	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-			
-
+	public boolean onTouchEvent(final MotionEvent event) {
 		// TODO Auto-generated method stub
 		  if ( event.getAction() == MotionEvent.ACTION_DOWN ){
 			 SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
 			 Intent intent;
+			 /*
 			 if(sp.getBoolean("isSelected", false)){		// 모드 선택 되었으면
 				 if(sp.getBoolean("isParent", false)){	// 부모(보호자 모드)인지
 					// intent =  new Intent(this, PathActivity.class);
@@ -74,21 +63,24 @@ public class IntroActivity extends BaseActivity {
 				 // 모드 선택 엑티비티로..
 				 intent =  new Intent(this, MenuActivity.class);
 			 }
+			 */
+			 // 모드 선택 엑티비티로..
+			 intent =  new Intent(this, MenuActivity.class);
 			 startActivity(intent);
 			 finish();
 			 return true;
 		  }
-	
+
 		  return super.onTouchEvent(event);
 
-			
-			
+
+
 	}
 
 	private void sendEmail() {
 		new sendEmailToServer().start();
 	}
-	
+
 	/**
 	 * 서버에 저장된 보호자의 정보를 가지고 서버에서 이메일을 발송한다.
 	 */
@@ -112,6 +104,6 @@ public class IntroActivity extends BaseActivity {
 	            	Log.e(BaseActivity.DEBUG_TAG, "io 에러: ", e);
 	            }
 		}
-	}	
-	
+	}
+
 }

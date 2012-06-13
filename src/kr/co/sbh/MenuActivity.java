@@ -11,39 +11,40 @@ import android.view.View;
 public class MenuActivity extends BaseActivity {
 	private SharedPreferences settings;
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_layout);
         settings = getSharedPreferences(PREFER, MODE_PRIVATE);
-       	this.init();	// 초기화 
+       	this.init();	// 초기화
     }
-    
+
     /**
      * 레이아웃 설정
      */
     private void init(){
     }
-    
-    public void mOnClick(View v){
+
+    public void mOnClick(final View v){
     	Intent intent=  null;
     	if(v.getId() == R.id.child_mode){
-			 if(settings.getBoolean("joined", false)){	
-				 intent =  new Intent(this, WardModeActivity.class);				 
-			 }else{	
-				 intent = new Intent(this, ChildRegActivity.class);				 
-			 }    		
-    		intent = new Intent(this, ChildRegActivity.class);
+			 if(settings.getBoolean("joined", false)){
+				 intent =  new Intent(this, WardModeActivity.class);
+			 }else{
+				 intent = new Intent(this, ChildRegActivity.class);
+			 }
     	}else if(v.getId() == R.id.parent_mode){
     		// 공유 환경 설정에 저장
+    		/*
     		SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
     		SharedPreferences.Editor editor = sp.edit();
     		editor.putBoolean("isParent", true);
     		editor.commit();
+    		*/
     		intent = new Intent(this, PathActivity.class);
     	}
     	startActivity(intent);
     	finish();
     }
-    
+
 
 }

@@ -5,7 +5,6 @@
     android:versionName="1.0" >
 
     <uses-sdk android:minSdkVersion="10" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
@@ -23,7 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity theme="@android:style/Theme.NoTitleBar" android:name=".ChildRegActivity"></activity> 
+        <activity android:screenOrientation="portrait" theme="@android:style/Theme.NoTitleBar" android:name=".ChildRegActivity"></activity> 
 		<activity android:screenOrientation="landscape"  android:theme="@android:style/Theme.NoTitleBar" android:name=".EmergencyCameraActivity"></activity>   
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".WardModeActivity"></activity>   		
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".InfoActivity"></activity>
@@ -44,5 +43,7 @@
 	<uses-permission android:name="android.permission.SEND_SMS" />
 	<uses-permission android:name="android.permission.VIBRATE" />
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />  
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+	<uses-permission android:name="android.permission.STORAGE" />
   
 </manifest>

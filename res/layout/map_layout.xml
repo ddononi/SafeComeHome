@@ -9,7 +9,7 @@
         android:layout_height="60dp"
         android:id="@+id/top_title"
         android:background="@drawable/top_bg_cust" >
-
+ 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -17,9 +17,9 @@
             android:textColor="#fff"
 		    android:layout_marginLeft="10dp"
 			android:layout_centerVertical="true"		    
-            android:textSize="22dp"
+            android:textSize="15dp"
             android:text="피보호자용" />
-        
+  
 		<ImageButton
 			android:layout_centerVertical="true"
 		    android:layout_alignParentRight="true"
@@ -38,7 +38,7 @@
 		    android:layout_width="45dp"
 		    android:layout_height="40dp"
 		    android:background="@drawable/cus_email_btn"
-		    android:contentDescription="이메일" />
+		    android:contentDescription="문자보내기" />
 		<ImageButton
 		    android:layout_centerVertical="true"
 		    android:id="@+id/loc_btn"
@@ -46,7 +46,18 @@
 		    android:layout_width="45dp"
 		    android:layout_height="40dp"
 		    android:background="@drawable/cus_loc_btn"
-		    android:contentDescription="내위치" />		        
+		    android:contentDescription="내위치" />	
+
+		<ImageButton
+		    android:layout_centerVertical="true"
+			android:layout_toLeftOf="@id/loc_btn"
+		    android:layout_marginRight="10dp"    
+		    android:id="@+id/rec_btn"
+		    android:layout_width="45dp"
+		    android:layout_height="40dp"
+            android:background="@drawable/btn_rec"
+		    android:contentDescription="녹화" />		    
+  
     </RelativeLayout>
     
     <LinearLayout 
@@ -63,8 +74,15 @@
         android:id="@+id/bottom_box"
         android:layout_alignParentBottom="true"
 	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:orientation="horizontal">        
+	    android:layout_height="100dp"
+	    android:orientation="vertical"
+	    android:background="@drawable/txt_win_bg"  >
+		
+        <TextView
+		    android:layout_width="fill_parent"
+		    android:layout_height="40dp"
+		    android:text=""
+            />		        
 		
         <Button
             android:id="@+id/trace_btn"
@@ -74,17 +92,8 @@
 		    android:textColor="#fff"
 		    android:textSize="18sp"
 		    android:background="@drawable/trace_btn"
+		    android:layout_margin="10dp"
              />
     </LinearLayout>
-    
-    
-    <LinearLayout 
-        android:layout_above="@id/bottom_box"
-	    android:layout_width="fill_parent"
-	    android:layout_height="80dp"
-	    android:orientation="vertical"
-	    android:background="@drawable/txt_win_bg"  >      
-
-   </LinearLayout>    
 
 </RelativeLayout>

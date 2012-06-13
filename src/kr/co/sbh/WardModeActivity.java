@@ -464,9 +464,11 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	public void onBackPressed() {	//  뒤로 가기버튼 클릭시 종료 여부
 		// 도착 처리를 했으면 앱 종료 처리를 묻고
 		// 그렇지 않으면 종료확인을 묻지 않고 나간다.
+		/*
 		if(isEnded == false){
 			return;
 		}
+		*/
 		finishDialog(this);
 	}	
 	

@@ -101,23 +101,39 @@
             android:layout_height="2px"
             android:background="#e5e5e5" />
 
-        <!-- 이메일 -->
-
+        <!-- 보호자 이메일 -->
         <TextView
             style="@style/label"
             android:tag="bold"
             android:text="@string/join_parent_email" />
 
         <EditText
-            android:id="@+id/email"
+            android:id="@+id/parent_email"
             style="@style/input"
-            android:hint="@string/hint_email"
+            android:hint="@string/hint_parent_email"
             android:inputType="textEmailAddress" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="2px"
             android:background="#e5e5e5" />
+        
+        <!-- 피보호자 이메일 -->
+        <TextView
+            style="@style/label"
+            android:tag="bold"
+            android:text="@string/join_ward_email" />
+
+        <EditText
+            android:id="@+id/ward_email"
+            style="@style/input"
+            android:hint="@string/hint_ward_email"
+            android:inputType="textEmailAddress" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="2px"
+            android:background="#e5e5e5" />        
 
         <!-- 등록 -->
 
@@ -128,6 +144,8 @@
             android:background="@drawable/trace_btn"
             android:hint="@string/register_btn"
             android:textColor="#fff"
+            android:layout_marginLeft="10dp"
+            android:layout_margin="10dp"
             android:textSize="22sp" />
     </LinearLayout>
 

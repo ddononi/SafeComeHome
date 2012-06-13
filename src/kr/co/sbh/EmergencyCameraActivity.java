@@ -11,22 +11,26 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Display;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 public class EmergencyCameraActivity extends BaseActivity implements
 		SurfaceHolder.Callback {
 	private MyFTPClient mFtp = null;
-
+	private Display display;
+	private boolean isRec; // 레코딩 상태여부
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
@@ -36,8 +40,11 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			mCamera = null;
 		}
 		if (recorder != null) {
-			recorder.stop();
-			recorder.release();
+			if(isRec){
+				isRec = false;
+				recorder.stop();
+				recorder.release();
+			}
 			recorder = null;
 		}
 		super.onPause();
@@ -53,7 +60,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	private static final int RECORDING_TIME = 30000;
 
 	// 카메라 프리뷰를 설정한다
-	private void setCameraPreview(SurfaceHolder holder) {
+	private void setCameraPreview(final SurfaceHolder holder) {
 		try {
 			// 카메라 객체를 만든다
 			mCamera = Camera.open();
@@ -67,7 +74,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			// 프리뷰 콜백을 설정한다 - 프레임 설정이 가능하다,
 			/*
 			 * mCamera.setPreviewCallback(new PreviewCallback() {
-			 * 
+			 *
 			 * @Override public void onPreviewFrame(byte[] data, Camera camera)
 			 * { // TODO Auto-generated method stub } });
 			 */
@@ -77,15 +84,15 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	}
 
 	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
+	public void surfaceCreated(final SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		// 서피스가 만들어졌을 때의 대응 루틴
 		setCameraPreview(holder);
 	}
 
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
+	public void surfaceChanged(final SurfaceHolder holder, final int format, final int width,
+			final int height) {
 
 		// TODO Auto-generated method stub
 		// 서피스 변경되었을 때의 대응 루틴
@@ -100,7 +107,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	}
 
 	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
+	public void surfaceDestroyed(final SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 
 		// 서피스 소멸시의 대응 루틴
@@ -132,19 +139,19 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	 * private void setButtons() { // Rec Start 버튼 콜백 설정 Button recStart =
 	 * (Button) findViewById(R.id.RecStart); recStart.setOnClickListener(new
 	 * View.OnClickListener() {
-	 * 
+	 *
 	 * @Override public void onClick(View v) { Log.e("CAM TEST",
 	 * "REC START!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-	 * 
+	 *
 	 * if (mVideoView.getHolder() == null) { Log.e("CAM TEST",
 	 * "View Err!!!!!!!!!!!!!!!"); } beginRecording(mVideoView.getHolder());
-	 * 
+	 *
 	 * } });
-	 * 
+	 *
 	 * // Rec Stop 버튼 콜백 설정 Button recStop = (Button)
 	 * findViewById(R.id.RecStop); recStop.setOnClickListener(new
 	 * View.OnClickListener() {
-	 * 
+	 *
 	 * @Override public void onClick(View v) { // TODO Auto-generated method
 	 * stub // 레코더 객체가 존재할 경우 이를 스톱시킨다 if (recorder != null) { Log.e("CAM TEST",
 	 * "CAMERA STOP!!!!!"); recorder.stop(); recorder.release(); recorder =
@@ -152,11 +159,29 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	 * "Preview Restart!!!!!"); // 프리뷰 다시 설정
 	 * setCameraPreview(mVideoView.getHolder()); // 프리뷰 재시작
 	 * mCamera.startPreview(); }
-	 * 
+	 *
 	 * } }); }
 	 */
 
-	private void beginRecording(SurfaceHolder holder) {
+
+	/*
+	 * 자동 동영상 촬영이기 때문에
+	 * 홈키 및 백키를 막는다.
+	 */
+	@Override
+    public void onAttachedToWindow() {
+        // 홈키로 가기 막기
+        this.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD);
+        super.onAttachedToWindow();
+    }
+
+    @Override
+    public void onBackPressed(){
+        // 백키 막기
+        return;
+    }
+
+	private void beginRecording(final SurfaceHolder holder) {
 		// 레코더 객체 초기화
 		Log.e("CAM TEST", "#1 Begin REC!!!");
 		if (recorder != null) {
@@ -187,9 +212,9 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 			recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 			recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-			// 비디오 사이즈를 수정하면 prepare 에러가 난다, 왜 그럴까? -> 특정 해상도가 있으며 이 해상도에만 맞출 수가
-			// 있다
-			recorder.setVideoSize(800, 480);
+			//recorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
+			// 레코더 사이즈 설정
+			recorder.setVideoSize(display.getWidth(), display.getHeight());
 			recorder.setVideoFrameRate(25);
 			// Video/Audio 인코더 설정
 			recorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
@@ -199,13 +224,15 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			// 프리뷰를 보여줄 서피스 설정
 			recorder.setPreviewDisplay(holder.getSurface());
 			// 녹화할 대상 파일 설정
+
 			recorder.setOutputFile(OUTPUT_FILE);
 			recorder.prepare();
 			recorder.start();
+			isRec = true;
 
 		} catch (Exception e) {
 			// TODO: handle exception
-			Log.e("CAM TEST", "Error Occur???!!!");
+			Log.e("CAM TEST", "error");
 			e.printStackTrace();
 		}
 
@@ -213,13 +240,11 @@ public class EmergencyCameraActivity extends BaseActivity implements
 
 	/** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.camera_layout);
-		// 세로화면 고정으로 처리한다
-		// SCREEN_ORIENTATION_LANDSCAPE - 가로화면 고정
-		// SCREEN_ORIENTATION_PORTRAIT - 세로화면 고정
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		// 윈도우 디스플레이 얻기
+		display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 		// 프리뷰를 설정한다
 		setPreview();
 
@@ -230,7 +255,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			public void run() {
 				beginRecording(mVideoView.getHolder());
 			}
-		}, 1000);
+		}, 2000);
 
 		new Handler().postDelayed(new Runnable() {
 			@Override
@@ -248,6 +273,26 @@ public class EmergencyCameraActivity extends BaseActivity implements
 		}, REC_TIME);
 
 	}
+
+
+	/**
+	 * 문자 발송하기
+	 * @param message
+	 */
+	private void sendSMS(final String message){
+		//PendingIntent pItent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_SENT), 0);
+		android.telephony.SmsManager  manager = android.telephony.SmsManager.getDefault();
+		// 공유설정환경에서 보호자 전화번호를 가져온다.
+		SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
+		String phone1 = sp.getString("phone1", "");
+		String phone2 =sp.getString("phone2", "");
+		sp.getString("phone1", "");
+		sp.getString("phone2", "");
+		// 문자 발송
+		manager.sendTextMessage(phone1, null, message, null, null);
+		manager.sendTextMessage(phone2, null, message, null, null);
+	}
+
 
 	/*
 	 * ftp 연결 설정
@@ -280,7 +325,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 		} else {
 
 		}
-		
+
 		return true;
 	}
 
@@ -292,7 +337,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 		ProgressDialog dialog = null;
 
 		@Override
-		protected void onPostExecute(Boolean result) { // 전송 완료후
+		protected void onPostExecute(final Boolean result) { // 전송 완료후
 			// 모든 파일이 전송이 완료되면 다이얼로그를 닫는다.
 			dialog.dismiss(); // 프로그레스 다이얼로그 닫기
 			if (mFtp.isConnected()) { // 연결이 되어 있으면
@@ -301,6 +346,9 @@ public class EmergencyCameraActivity extends BaseActivity implements
 			// 파일 전송 결과를 출력
 			if (result) { // 파일 전송이 정상이면
 				sendEmail();	// 보호자에게 메일 발송
+				// 문자 발송하기
+				String msg = "피보호자가 위험합니다!! 피보호자의 신변을 확인하세요";
+				sendSMS(msg);
 				Intent intent = new Intent(EmergencyCameraActivity.this, WardModeActivity.class);
 				startActivity(intent);
 				finish();
@@ -309,6 +357,10 @@ public class EmergencyCameraActivity extends BaseActivity implements
 						"파일 전송 실패!\n 네트워크 상태 및 서버상태를 체크하세요", Toast.LENGTH_LONG)
 						.show();
 			}
+
+			if(dialog != null){
+				dialog.dismiss();
+			}
 		}
 
 
@@ -316,25 +368,24 @@ public class EmergencyCameraActivity extends BaseActivity implements
 		protected void onPreExecute() { // 전송전 프로그래스 다이얼로그로 전송중임을 사용자에게 알린다.
 			dialog = ProgressDialog.show(EmergencyCameraActivity.this, "전송중",
 					"사용자 환경에 따라 전송 속도가 다를수 있습니다." + " 잠시 기다려주세요", true);
-			//dialog.show();
 		}
 
 		@Override
-		protected void onProgressUpdate(String... values) {
+		protected void onProgressUpdate(final String... values) {
 		}
 
 		@Override
-		protected Boolean doInBackground(Object... params) { // 전송중
+		protected Boolean doInBackground(final Object... params) { // 전송중
 			return uploadToServer();
 		}
 
 	}
-	
+
 
 	private void sendEmail() {
 		new sendEmailToServer().start();
 	}
-	
+
 	/**
 	 * 서버에 저장된 보호자의 정보를 가지고 서버에서 이메일을 발송한다.
 	 */
@@ -358,6 +409,8 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	            	Log.e(BaseActivity.DEBUG_TAG, "io 에러: ", e);
 	            }
 		}
-	}		
+	}
+
+
 
 }

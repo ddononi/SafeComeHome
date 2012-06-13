@@ -18,7 +18,7 @@ import android.widget.Toast;
 public class BaseActivity extends Activity {
 	/* app setting */
 	public final static String  PREFER = "sbh_preference";
-	
+
     /* Debug setting */
     public static final String DEBUG_TAG = "sbh";
 
@@ -33,10 +33,10 @@ public class BaseActivity extends Activity {
     public static final String FTP_NAME = "ddononi";			// ************해당 ftp id 로 수정***********************//
     public static final String FTP_PASSWORD = "goqkfkrl01";		// ************해당 ftp pass 로 수정***********************//
     public static final String UPLOAD_URL = "/safeComeHome/insert.php";	// 유저 등록 url
-    public static final String PATH_UPLOAD_URL = "/safeComeHome/upload_latlng.php";	// 경로 업로드 url    
+    public static final String PATH_UPLOAD_URL = "/safeComeHome/upload_latlng.php";	// 경로 업로드 url
     public static final String FTP_PATH = "/www/safeComeHome/uploads/";	//	ftp path
     public static final String EMAIL_SEND_URL = "/safeComeHome/sendEmail.php";
-    
+
     /* map */
     public static final String MAP_KEY = "15e7687bc114182c8e799ff28d716d48ae81a2ef";
     public static final String DAUM_LOCAL_KEY = "1a4150ac00469d2392fab7b8c0ff9b076dc07ad1";
@@ -81,12 +81,15 @@ public class BaseActivity extends Activity {
 	public final static Calendar calendar = Calendar.getInstance();
 
 	// 아웃풋 파일 경로
-	public static final String OUTPUT_PATH = "/sdcard/";	
-	public static final String FILENAME = "sch.mp4";	
+	public static final String OUTPUT_PATH = "/sdcard/";
+	public static final String FILENAME = "sch.mp4";
 	public static final String OUTPUT_FILE = OUTPUT_PATH + FILENAME;
 
 	// rec end time
 	public static final int REC_TIME = 1000 * 30;	// 30sec
+
+	public static final String ACTION_SENT = "kr.co.sbh.SENT";
+	public static final String ACTION_DELIVERED = "kr.co.sbh.DELIVERED";
 
     /*
      * 앱  종료 다이얼로그
@@ -95,6 +98,7 @@ public class BaseActivity extends Activity {
 		AlertDialog.Builder ad = new AlertDialog.Builder(context);
 		ad.setTitle("").setMessage("종료 하시겠습니까?")
 		.setPositiveButton("종료", new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(final DialogInterface dialog, final int which) {
 				// TODO Auto-generated method stub
 				moveTaskToBack(true);
@@ -122,7 +126,7 @@ public class BaseActivity extends Activity {
 		ad.setTitle("도움말").setMessage(str)
 		.setPositiveButton("확인",null).show();
     }
-    
+
 	/**
 	 * 네트워크망을 사용가능한지 혹은 연결되어있는지 확인한다.
 	 * msgFlag가 false이면 현재 연결되어 있는 네트워크를 알려준다.
@@ -163,6 +167,7 @@ public class BaseActivity extends Activity {
 							+ "원활하지 않습니다.네트워크 확인후 다시 접속해 주세요!")
 			.setPositiveButton("닫기",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(final DialogInterface dialog,
 								final int which) {
 							dialog.dismiss(); // 닫기
@@ -173,7 +178,7 @@ public class BaseActivity extends Activity {
 		}
 		return true;
 
-	}    
+	}
 
 }
 

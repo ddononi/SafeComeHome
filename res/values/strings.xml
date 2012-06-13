@@ -10,11 +10,13 @@
     <string name="join_name_label">이름 : </string>
     <string name="join_parent_phone">주 보호자연락처: </string>
     <string name="join_parent_phone2">보조 보호자연락처 : </string>
-    <string name="join_parent_email">이메일 : </string>
+    <string name="join_parent_email">보호자 이메일 : </string>
+    <string name="join_ward_email">피보호자 이메일 : </string>
     <string name="join_pic_label">사진등록 </string>
     <string name="hint_name">이름을 입력하세요 ..</string>
     <string name="hint_parent_phone">주보호자연락처를 입력하세요.. </string>
-    <string name="hint_email">이메일을 입력하세요.. </string>
+    <string name="hint_parent_email">보호자 이메일을 입력하세요.. </string>
+    <string name="hint_ward_email">피보호자 이메일을 입력하세요.. </string>
     <string name="hint_parent_phone2">보조 보호자연락처를 입력하세요</string>
     <string name="register_btn">등록하기</string>
     

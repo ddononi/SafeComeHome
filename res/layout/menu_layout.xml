@@ -18,19 +18,21 @@
     <Button
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:background="@drawable/guard_btn"
         android:text="보호자로 시작하기"
         android:onClick="mOnClick"
+        android:layout_margin="10dp"
         android:id="@+id/parent_mode"
         />
     
     <Button
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:background="@drawable/child_btn"
         android:text="피보호자로 시작하기"
+        android:layout_margin="10dp"
         android:onClick="mOnClick"
         android:id="@+id/child_mode"
         />    
