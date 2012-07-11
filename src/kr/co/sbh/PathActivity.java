@@ -9,6 +9,7 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import kr.co.sbh.data.PathPoint;
 import net.daum.mf.map.api.MapPOIItem;
@@ -30,12 +31,16 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.XmlResourceParser;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -133,7 +138,6 @@ CurrentLocationEventListener, POIItemEventListener {
         		// poi 아이템 설정
         		item.setTag(START_TAG);
         		item.setItemName("출발");
-        		Toast.makeText(this, "gg", Toast.LENGTH_SHORT).show();
         		item.setMapPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()));
         		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
         		item.setMarkerType(MarkerType.CustomImage);
@@ -141,6 +145,16 @@ CurrentLocationEventListener, POIItemEventListener {
         		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
         		// 맵에 붙여준다.
         		mMapView.addPOIItem(item);
+        		
+        		// 출발 시간 넣어주기
+        		TextView startTimeTv  = (TextView)findViewById(R.id.startTime);
+        		startTimeTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발 시간 :</font> " )+ p.getDate());
+        		
+                // 출발 주소
+        		TextView startPlaceTv = (TextView)findViewById(R.id.start_place);
+   		
+        		// 출발 위치 넣어주기
+        		startPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
 			}else if(index == list.size() -1){
 				//if(p.getPathFlag() != null &&
 				//	p.getPathFlag().equals("arrive")){	// 도착 아이콘
@@ -156,9 +170,18 @@ CurrentLocationEventListener, POIItemEventListener {
 				endItem.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 				// 맵에 붙여준다.
 				mMapView.addPOIItem(endItem);
+				// 도착 시간 넣어주기
+        		TextView endTimeTv  = (TextView)findViewById(R.id.endTime);
+        		endTimeTv.setText(Html.fromHtml( "<font style='font-weight:bold;'>도착 시간 :</font> " )+ p.getDate());
+
+        		// 도착 주소
+        		TextView endPlaceTv = (TextView)findViewById(R.id.end_place);            
+        		// 도착 위치 넣어주기
+        		endPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>도착장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));        		
 			}
 			polyline.addPoint(
 					MapPoint.mapPointWithGeoCoord(p.getLatitude(),  p.getLongitude()));
+			
 			index++;
 		}
 		// 맵뷰에 붙여준다.
@@ -370,5 +393,26 @@ CurrentLocationEventListener, POIItemEventListener {
 	public void onMapViewZoomLevelChanged(final MapView arg0, final int arg1) {
 	}
 
+	
+	private String getAddress(double lat, double lng){
+		// Geocoder를 이용하여 좌표를 주소로 변환처리
+		Geocoder gc = new Geocoder(this,Locale.getDefault());
+		List<Address> addresses = null;
+		try {
+			addresses = gc.getFromLocation(lat, lng,  1);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String addressStr = "현위치";
+		if(addresses != null && addresses.size()>0) {	// 주소가 있으면
+			// 첫번째 주소 컬렉션을 얻은후
+			Address address = addresses.get(0);
+			// 실제 주소만 가져온다.
+			return address.getAddressLine(0).replace("대한민국", "").trim();
+		}
+		
+		return "";
+	}
 }
 

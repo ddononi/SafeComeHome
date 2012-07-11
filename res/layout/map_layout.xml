@@ -74,15 +74,47 @@
         android:id="@+id/bottom_box"
         android:layout_alignParentBottom="true"
 	    android:layout_width="fill_parent"
-	    android:layout_height="100dp"
+	    android:layout_height="150dp"
 	    android:orientation="vertical"
 	    android:background="@drawable/txt_win_bg"  >
 		
         <TextView
+            android:textColor="#fff"
+            android:id="@+id/start_place"
 		    android:layout_width="fill_parent"
-		    android:layout_height="40dp"
+		    android:layout_height="wrap_content"
 		    android:text=""
-            />		        
+		    android:layout_marginBottom="5dp"
+		    android:layout_marginLeft="10dp"
+		    android:layout_marginTop="10dp"
+            />		
+                    
+        <TextView
+            android:textColor="#fff"
+            android:id="@+id/end_place"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="5dp"
+		    android:layout_marginLeft="10dp"
+            />        
+            
+        <TextView
+            android:textColor="#fff"
+            android:id="@+id/startTime"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="5dp"
+		    android:layout_marginLeft="10dp"
+            />       
+            
+        <TextView
+            android:textColor="#fff"
+            android:id="@+id/endTime"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="5dp"
+		    android:layout_marginLeft="10dp"
+            />           
 		
         <Button
             android:id="@+id/trace_btn"

@@ -106,7 +106,7 @@ public class LocationService extends Service {
 				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
 				// 경로 그리기 시작
 				WardModeActivity.pathList.add(point);	// 경로를 저장한다.							
-				uts = new UploadToServer(point, "start");
+				uts = new UploadToServer(point, "");
 				uts.start();
 			}else{
 				// 출발후면
@@ -123,29 +123,21 @@ public class LocationService extends Service {
 						alarmCount = 0;
 					//}
 				}else{
-
-					// 위급 상황으로 판단하여 자동 동영상 녹화 및 저장후 
-					// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
-					Intent intent = new Intent(getBaseContext(), EmergencyCameraActivity.class);
-					PendingIntent pi = PendingIntent.getActivity(getBaseContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);					
-					try {
-						pi.send();
-					} catch (CanceledException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					
 					// 일정주기동안 움직임이 없을경우 보호자에게 전화를 건다.
-					/*
+
 					if(alarmCount++ == BaseActivity.CALL_COUNT){
-						Log.i(BaseActivity.DEBUG_TAG, "call");
-						// 전화 걸기
-						Uri uri = Uri.parse("tel:010-1111-2222");
-						Intent it = new Intent(Intent.ACTION_CALL, uri);
-						// 새로운 엑티비티로
-						it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-						startActivity(it);
+						// 위급 상황으로 판단하여 자동 동영상 녹화 및 저장후 
+						// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
+						Intent intent = new Intent(getBaseContext(), EmergencyCameraActivity.class);
+						PendingIntent pi = PendingIntent.getActivity(getBaseContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);					
+						try {
+							pi.send();
+						} catch (CanceledException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
-					*/
 					
 				}
 			}
@@ -186,8 +178,9 @@ public class LocationService extends Service {
 
 		String provider = locationManager.getBestProvider(criteria, true);
 		// 1분 간격 
-		locationManager.requestLocationUpdates(provider, 1000 * 60, 10,
+		locationManager.requestLocationUpdates(provider, 1000 * 60, 0,
 				loclistener);
+		mLocation = locationManager.getLastKnownLocation(provider);
 		/*
 		 * String provider; // gps 가 켜져 있으면 gps로 먼저 수신 if
 		 * (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {

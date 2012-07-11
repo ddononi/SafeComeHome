@@ -6,9 +6,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -84,6 +86,10 @@ public class BaseActivity extends Activity {
 	public static final String OUTPUT_PATH = "/sdcard/";
 	public static final String FILENAME = "sch.mp4";
 	public static final String OUTPUT_FILE = OUTPUT_PATH + FILENAME;
+	
+	// 이메일 발송 메세지
+	public static final String EMAIL_MSG = "피보호자가 위험합니다!! 피보호자의 신변을 확인하세요";
+
 
 	// rec end time
 	public static final int REC_TIME = 1000 * 30;	// 30sec
@@ -101,6 +107,11 @@ public class BaseActivity extends Activity {
 			@Override
 			public void onClick(final DialogInterface dialog, final int which) {
 				// TODO Auto-generated method stub
+				// 서비스중지
+				Intent serviceIntent = new Intent(getApplicationContext(), LocationService.class);
+				stopService(serviceIntent);
+				Log.i(DEBUG_TAG, "service start!!");			
+				
 				moveTaskToBack(true);
 				finish();
 				android.os.Process.killProcess(android.os.Process.myPid() );

@@ -1,7 +1,21 @@
 package kr.co.sbh;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Vector;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPOIItem.MarkerType;
@@ -36,6 +50,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -50,6 +65,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	private MapReverseGeoCoder reverseGeoCoder = null;
 	private MapPolyline tracePath = new MapPolyline();
 	private SharedPreferences sp;								// 공유 환경설정
+	private UploadToServer uts;	// 서버 업로드 쓰레드 		
 	
 	private LocationManager locationManager;
 	private Location mLocation = null;
@@ -57,6 +73,11 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	private Button traceBtn;
 	protected static boolean isStarted = false;	// 출발여부
 	protected static boolean isEnded = false;	// 도착여부
+	
+	private TextView startPlaceTv;		// 시작 위치주소
+	private TextView endPlaceTv;		// 도착 위치주소
+	private TextView startTimeTv;		// 출발 시간
+	private TextView endTimeTv;			// 도착 시간
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,15 +116,27 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
         traceBtn = (Button)findViewById(R.id.trace_btn);
         traceBtn.setClickable(false);	// 현재 위치를 찾기 전까지는 클릭 잠금
         
+        // 긴급 녹화 발송버튼
+        ImageButton emerBtn = (ImageButton)findViewById(R.id.rec_btn);        
         //	 내위치 찾기 버튼
         ImageButton myLocBtn = (ImageButton)findViewById(R.id.loc_btn);
-        // 긴급 발송버튼
+        //  이메일 버튼
         ImageButton emailBtn = (ImageButton)findViewById(R.id.email_btn);
         // 바로 전화 걸기 버튼
         ImageButton callBtn = (ImageButton)findViewById(R.id.call_btn);
+        
+        emerBtn.setOnClickListener(this);
         myLocBtn.setOnClickListener(this);
         emailBtn.setOnClickListener(this);
         callBtn.setOnClickListener(this);
+        
+        // 출발 주소
+		startPlaceTv = (TextView)findViewById(R.id.start_place);
+		// 도착 주소
+		endPlaceTv = (TextView)findViewById(R.id.end_place);
+		
+		startTimeTv  = (TextView)findViewById(R.id.startTime);
+		endTimeTv  = (TextView)findViewById(R.id.endTime);
     }
 
 	/**
@@ -155,8 +188,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 
 		String provider = locationManager.getBestProvider(criteria, true);
 		// 1분 이상 10미터 이상 
-		locationManager.requestLocationUpdates(provider, 1000 * 60, 10, loclistener);
-		//mLocation = locationManager.getLastKnownLocation(provider);
+		locationManager.requestLocationUpdates(provider, 1000 * 60, 0, loclistener);
+		mLocation = locationManager.getLastKnownLocation(provider);
 	}
 
 
@@ -167,14 +200,17 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			Log.w(DEBUG_TAG, "onLocationChanged");
 			// 현재 위치정보가 없을때 한번만 현재 위치로 중심을 이동한다.
 			if(mLocation == null){
-				Toast.makeText(WardModeActivity.this, "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
-				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-				mapView.setMapCenterPoint(point, true);
-				// 추적 버튼 풀기
-				traceBtn.setClickable(true);
-				// 이벤트 리스너 달아주기
-		        traceBtn.setOnClickListener(WardModeActivity.this);
+				return;
 			}
+			
+			Toast.makeText(WardModeActivity.this, "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
+			MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
+			mapView.setMapCenterPoint(point, true);
+			// 추적 버튼 풀기
+			traceBtn.setClickable(true);
+			// 이벤트 리스너 달아주기
+	        traceBtn.setOnClickListener(WardModeActivity.this);
+
 			mLocation = location;	// 위치 받아오기
 		}
 
@@ -394,15 +430,23 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				Toast.makeText(this, "현재를 찾을수 없습니다.", Toast.LENGTH_SHORT).show();
 			}
 			break;			
-		case R.id.email_btn :	// 긴급 촬영 모드
+		case R.id.rec_btn : 	// 긴급 촬영 모드
 			// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
 			intent = new Intent(this, EmergencyCameraActivity.class);
 			startActivity(intent);
 			break;
+		case R.id.email_btn :	// 이메일 발송
+			// SMS 발송
+			String emailAddr = "smsto:" +  sp.getString("phone1", "112");
+			Uri uri = Uri.parse(emailAddr);   
+			intent = new Intent(Intent.ACTION_SENDTO, uri);   
+			intent.putExtra("sms_body", EMAIL_MSG);   
+			startActivity(intent);  
+			break;
 		case R.id.call_btn : 		// 보호자에게 전화하기	
 			// 보호자에게 전화걸기를 시도
 			// 전화번호가 없을경우 112로 신고
-			Uri uri = Uri.parse("tel:" + sp.getString("phone1", "112") );
+			uri = Uri.parse("tel:" + sp.getString("phone1", "112") );
 			intent = new Intent(Intent.ACTION_CALL,uri);
 			startActivity(intent);
 			break;			
@@ -429,8 +473,11 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 		// 맵에 붙여준다.
 		mapView.addPOIItem(item);
-		
         doStartService();	// 서비스로 위치수신		
+		startTimeTv.setText("출발시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
+		uts = new UploadToServer(point, "start", startPlaceTv.getText().toString(), startTimeTv.getText().toString());
+		uts.start();
+		
 	}
 	
 	/**
@@ -440,6 +487,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		// 현재 위치를 얻고
 		MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
 		pathList.add(point);
+		
+		reverseGeoCoder = new MapReverseGeoCoder(DAUM_LOCAL_KEY, point, this, this);
+		reverseGeoCoder.startFindingAddress();		
+		
 		MapPOIItem item = new MapPOIItem();
 		// poi 아이템 설정
 		item.setTag(END_TAG);
@@ -455,8 +506,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		// 서비스설정
 		Intent serviceIntent = new Intent(this, LocationService.class);
 		// 서비스 종료
-		stopService(serviceIntent);		
-	
+		stopService(serviceIntent);	
+		endTimeTv.setText("도착시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
+		uts = new UploadToServer(point, "end", endPlaceTv.getText().toString(), endTimeTv.getText().toString());
+		uts.start();		
 	}
 	
 
@@ -533,8 +586,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 
 	
 	public void onReverseGeoCoderFoundAddress(MapReverseGeoCoder rGeoCoder, String addressString) {
-		
-		String alertMessage = String.format("Center Point Address = [%s]", addressString);
+
 		/*
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 		alertDialog.setTitle("DaumMapLibrarySample");
@@ -547,6 +599,13 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		MapPOIItem item = mapView.findPOIItemByTag(START_TAG);
 		item.setItemName(addressString);
 		mapView.addPOIItem(item);
+		
+		if(isEnded == false){
+			startPlaceTv.setText("출발 위치 : " + addressString);
+		}else{
+			endPlaceTv.setText("도착 위치 : " + addressString);
+		}
+		
 		reverseGeoCoder = null;
 	}
 	
@@ -562,6 +621,57 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		reverseGeoCoder = null;
 	}	
 	
+	
+	/**
+	 * 경로 좌표를 서버에 전송한다.
+	 */
+	private class UploadToServer extends Thread{
+		private MapPoint point;
+		private String flag;
+		private String place;
+		private String time;
+		public UploadToServer(MapPoint point, String flag, String place, String time){
+			this.point = point;
+			this.flag = flag;
+			this.place = place;
+			this.time = time;
+		}
+
+		@Override
+		public void run() {
+			super.run();
+			// http 로 보낼 이름 값 쌍 컬랙션
+			Vector<NameValuePair> vars = new Vector<NameValuePair>();
+
+			try {
+				// HTTP post 메서드를 이용하여 데이터 업로드 처리
+				// 위경도 좌표를 서버에 전송
+	            vars.add(new BasicNameValuePair("lat", String.valueOf(point.getMapPointGeoCoord().latitude)));			
+	            vars.add(new BasicNameValuePair("lng", String.valueOf(point.getMapPointGeoCoord().longitude)));	
+	            vars.add(new BasicNameValuePair("flag", flag));	
+	            vars.add(new BasicNameValuePair("place", place));	
+	            vars.add(new BasicNameValuePair("time", time));	
+	            
+	            //  vars.add(new BasicNameValuePair("flag",));	
+	            HttpPost request = new HttpPost("http://" + BaseActivity.SERVER_URL + BaseActivity.PATH_UPLOAD_URL);
+	           // 한글깨짐을 방지하기 위해 utf-8 로 인코딩시키자
+				UrlEncodedFormEntity entity = null;
+				entity = new UrlEncodedFormEntity(vars, "UTF-8");
+				request.setEntity(entity);
+	                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+	                HttpClient client = new DefaultHttpClient();
+	                final String responseBody = client.execute(request, responseHandler);	// 전송
+	                if (responseBody.trim().contains("ok")) {
+	                	Log.i(BaseActivity.DEBUG_TAG, "정상업로드");
+	                }
+
+	            } catch (ClientProtocolException e) {
+	            	Log.e(BaseActivity.DEBUG_TAG, "Failed to get playerId (protocol): ", e);
+	            } catch (IOException e) {
+	            	Log.e(BaseActivity.DEBUG_TAG, "Failed to get playerId (io): ", e);
+	            }
+		}
+	}		
 
 	
 }
