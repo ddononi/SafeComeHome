@@ -40,7 +40,7 @@ public class MenuActivity extends BaseActivity {
     		editor.putBoolean("isParent", true);
     		editor.commit();
     		*/
-    		intent = new Intent(this, PathActivity.class);
+    		intent = new Intent(this, ParentModeActivity.class);
     	}
     	startActivity(intent);
     	finish();

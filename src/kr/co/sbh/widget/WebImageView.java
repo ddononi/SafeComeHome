@@ -105,7 +105,6 @@ public class WebImageView extends ImageView {
 		// 원격이미지가 처음 로딩이면
 		if(isCompleted == false){
 			DownloadTask task = new DownloadTask();
-			//task.execute(iLMRConstant.BASE_URL + url);
 			task.execute(url);
 		}else{
 			// 이미 로딩이 완료가 되었으면 BitmapDrawable로 이미지 설정

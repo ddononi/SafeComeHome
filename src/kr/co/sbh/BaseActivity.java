@@ -28,6 +28,9 @@ public class BaseActivity extends Activity {
     public static final String SERVER_URL = "ddononi.cafe24.com";	//	서버 주소
     public static final int MAX_SERVER_CONNECT_COUNT = 5;	//	최대 서버 연결 회수
     public static final String GET_URL = "/safeComeHome/loadPath.php";	// 경로 가져오기
+    public static final String WARD_INFO_URL = "/safeComeHome/loadPath.php";	// 피보호자 정보 가져오기
+    public static final String WARD_IMAGE_URL = "/safeComeHome/uploads/";
+
     public static final int MAX_FILE_NAME_LENGTH = 100;			// 최대 파일 이름
     public static final int MAX_FILE_SIZE = 5242880;			// 최대 사진 파일 전송 사이즈 5 Mb
     public static final int SERVER_FTP_PORT = 21;
@@ -86,7 +89,7 @@ public class BaseActivity extends Activity {
 	public static final String OUTPUT_PATH = "/sdcard/";
 	public static final String FILENAME = "sch.mp4";
 	public static final String OUTPUT_FILE = OUTPUT_PATH + FILENAME;
-	
+
 	// 이메일 발송 메세지
 	public static final String EMAIL_MSG = "피보호자가 위험합니다!! 피보호자의 신변을 확인하세요";
 
@@ -110,8 +113,8 @@ public class BaseActivity extends Activity {
 				// 서비스중지
 				Intent serviceIntent = new Intent(getApplicationContext(), LocationService.class);
 				stopService(serviceIntent);
-				Log.i(DEBUG_TAG, "service start!!");			
-				
+				Log.i(DEBUG_TAG, "service start!!");
+
 				moveTaskToBack(true);
 				finish();
 				android.os.Process.killProcess(android.os.Process.myPid() );

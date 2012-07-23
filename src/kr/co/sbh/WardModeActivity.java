@@ -88,7 +88,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.map_layout);
+        setContentView(R.layout.ward_mode_layout);
         sp = getSharedPreferences(PREFER, MODE_PRIVATE);
         getLocation();
         initMap();
@@ -454,7 +454,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000L, 0, loclistener);
 
 				searchMyPlace();
-				Toast.makeText(this, "현재를 찾을수 없습니다.", Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, "현재 위치를 찾을수 없습니다.", Toast.LENGTH_SHORT).show();
 			}
 			break;
 		case R.id.rec_btn : 	// 긴급 촬영 모드

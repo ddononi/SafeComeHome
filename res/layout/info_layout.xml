@@ -28,13 +28,14 @@
         android:layout_height="150dp">
 
 
-	    <ImageView
+	    <kr.co.sbh.widget.WebImageView
+	        android:id="@+id/ward_image"
 	        android:layout_width="150dp"
 	        android:layout_height="150dp" 
 	        android:src="@drawable/loading_animation"
 	        android:layout_alignParentLeft="true"
 	        android:padding="10dp"
-	        android:scaleType="fitXY"
+	        android:scaleType="center"
 	        />         
         
         <TextView

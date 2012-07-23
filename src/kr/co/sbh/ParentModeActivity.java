@@ -37,18 +37,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * 보호자 모드 엑티비티
  * 디비에서 피보호자의 이동경로를 받아와서
  * 출발 및 도착 경로를 그려준다.
  */
-public class PathActivity extends BaseActivity implements
+public class ParentModeActivity extends BaseActivity implements
 OpenAPIKeyAuthenticationResultListener, MapViewEventListener,
 CurrentLocationEventListener, POIItemEventListener {
 	private MapView mMapView = null;
@@ -69,8 +69,11 @@ CurrentLocationEventListener, POIItemEventListener {
 	protected void onCreate(final Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.path_layout);
+		setContentView(R.layout.parent_mode_layout);
 		initLayout();
+		Log.i("safe", "thread start" );
+		// 쓰레드로 서버에서 경로를 받아온다.
+		new LoadPathThread().start();
 	}
 
 
@@ -92,8 +95,6 @@ CurrentLocationEventListener, POIItemEventListener {
 		mMapView.setCurrentLocationEventListener(this);
 		mMapView.setPOIItemEventListener(this);
 		mapParant.addView(mMapView);
-		// 쓰레드로 서버에서 경로를 받아온다.
-		new LoadPathThread().start();
 
 	}
 
@@ -110,6 +111,7 @@ CurrentLocationEventListener, POIItemEventListener {
 	 * 키 인증 처리 결과
 	 * 인증 성공시 현위치를 검색하고 주변 친구들을 인증실패시 종료한다.
 	 */
+	@Override
 	public void onDaumMapOpenAPIKeyAuthenticationResult(final MapView arg0, final int result,
 			final String arg2) {
 		// 인증 성공시에 현위치 검색
@@ -145,14 +147,14 @@ CurrentLocationEventListener, POIItemEventListener {
         		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
         		// 맵에 붙여준다.
         		mMapView.addPOIItem(item);
-        		
+
         		// 출발 시간 넣어주기
         		TextView startTimeTv  = (TextView)findViewById(R.id.startTime);
         		startTimeTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발 시간 :</font> " )+ p.getDate());
-        		
+
                 // 출발 주소
         		TextView startPlaceTv = (TextView)findViewById(R.id.start_place);
-   		
+
         		// 출발 위치 넣어주기
         		startPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
 			}else if(index == list.size() -1){
@@ -175,13 +177,13 @@ CurrentLocationEventListener, POIItemEventListener {
         		endTimeTv.setText(Html.fromHtml( "<font style='font-weight:bold;'>도착 시간 :</font> " )+ p.getDate());
 
         		// 도착 주소
-        		TextView endPlaceTv = (TextView)findViewById(R.id.end_place);            
+        		TextView endPlaceTv = (TextView)findViewById(R.id.end_place);
         		// 도착 위치 넣어주기
-        		endPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>도착장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));        		
+        		endPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>도착장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
 			}
 			polyline.addPoint(
 					MapPoint.mapPointWithGeoCoord(p.getLatitude(),  p.getLongitude()));
-			
+
 			index++;
 		}
 		// 맵뷰에 붙여준다.
@@ -244,6 +246,8 @@ CurrentLocationEventListener, POIItemEventListener {
 		    	xml.append(line);
 		    }
 		    String decodeXMl = URLDecoder.decode(xml.toString());
+			// xml 외의 문자 제거
+		    decodeXMl = decodeXMl.substring(decodeXMl.indexOf("<"), decodeXMl.lastIndexOf(">") + 1);
 		    parser.setInput(new StringReader(decodeXMl));
 			int eventType = -1;
 			// 리스트에 담을 좌표 데이터 클래스
@@ -338,6 +342,8 @@ CurrentLocationEventListener, POIItemEventListener {
 			// TODO Auto-generated method stub
 			List<PathPoint> list;
 			try {
+
+				Log.i("safe", "thread start" );
 				list = processXML();
 				Message msg = new Message();
 				msg.obj = list;
@@ -355,46 +361,58 @@ CurrentLocationEventListener, POIItemEventListener {
 
     }
 
+	@Override
 	public void onCalloutBalloonOfPOIItemTouched(final MapView arg0, final MapPOIItem arg1) {
 	}
 
+	@Override
 	public void onDraggablePOIItemMoved(final MapView arg0, final MapPOIItem arg1,
 			final MapPoint arg2) {
 	}
 
+	@Override
 	public void onPOIItemSelected(final MapView arg0, final MapPOIItem arg1) {
 	}
 
+	@Override
 	public void onCurrentLocationDeviceHeadingUpdate(final MapView arg0, final float arg1) {
 	}
 
+	@Override
 	public void onCurrentLocationUpdate(final MapView arg0, final MapPoint arg1, final float arg2) {
 	}
 
+	@Override
 	public void onCurrentLocationUpdateCancelled(final MapView arg0) {
 	}
 
+	@Override
 	public void onCurrentLocationUpdateFailed(final MapView arg0) {
 	}
 
+	@Override
 	public void onMapViewCenterPointMoved(final MapView arg0, final MapPoint arg1) {
 
 	}
 
+	@Override
 	public void onMapViewDoubleTapped(final MapView arg0, final MapPoint arg1) {
 	}
 
+	@Override
 	public void onMapViewLongPressed(final MapView arg0, final MapPoint arg1) {
 	}
 
+	@Override
 	public void onMapViewSingleTapped(final MapView arg0, final MapPoint arg1) {
 	}
 
+	@Override
 	public void onMapViewZoomLevelChanged(final MapView arg0, final int arg1) {
 	}
 
-	
-	private String getAddress(double lat, double lng){
+
+	private String getAddress(final double lat, final double lng){
 		// Geocoder를 이용하여 좌표를 주소로 변환처리
 		Geocoder gc = new Geocoder(this,Locale.getDefault());
 		List<Address> addresses = null;
@@ -411,7 +429,7 @@ CurrentLocationEventListener, POIItemEventListener {
 			// 실제 주소만 가져온다.
 			return address.getAddressLine(0).replace("대한민국", "").trim();
 		}
-		
+
 		return "";
 	}
 }
