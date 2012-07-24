@@ -2,116 +2,112 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:background="#f8f8f8" >
+    android:background="#f8f8f8"
+    android:orientation="vertical" >
+
     <RelativeLayout
-        android:layout_alignParentTop="true"
+        android:id="@+id/cus_add_top_title"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:id="@+id/cus_add_top_title"
+        android:layout_alignParentTop="true"
         android:background="@drawable/top_bg_cust" >
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:tag="bold"
-            android:textColor="#fff"
             android:gravity="center"
-            android:textSize="25dp"
-            android:text="피보호자 정보" />
+            android:tag="bold"
+            android:text="피보호자 정보"
+            android:textColor="#fff"
+            android:textSize="25dp" />
     </RelativeLayout>
- 
+
     <RelativeLayout
-        android:layout_marginTop="10dp"
-        android:layout_alignParentTop="true"
         android:layout_width="match_parent"
-        android:layout_height="150dp">
+        android:layout_height="150dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp" >
 
+        <kr.co.sbh.widget.WebImageView
+            android:id="@+id/ward_image"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_centerHorizontal="true"
+            android:padding="10dp"
+            android:scaleType="center"
+            android:src="@drawable/loading_animation" />
+    </RelativeLayout>
 
-	    <kr.co.sbh.widget.WebImageView
-	        android:id="@+id/ward_image"
-	        android:layout_width="150dp"
-	        android:layout_height="150dp" 
-	        android:src="@drawable/loading_animation"
-	        android:layout_alignParentLeft="true"
-	        android:padding="10dp"
-	        android:scaleType="center"
-	        />         
-        
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:tag="bold"
-            android:textColor="#000"
-            android:gravity="center_vertical"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"
-            android:textSize="18dp"
-            android:id="@+id/ward"
-            android:text="홍길동 (만 10세)" />
-    </RelativeLayout> 
-    
-    
+    <TextView
+        style="@style/label"
+        android:tag="bold"
+        android:text="이름 : " />
+
+    <TextView
+        android:id="@+id/ward_name"
+        style="@style/input" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#e5e5e5" />
+
     <RelativeLayout
-        android:layout_alignParentTop="true"
         android:layout_width="match_parent"
-        android:layout_height="70dp">
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true" >
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_centerVertical="true"            
+            style="@style/label"
             android:tag="bold"
-            android:textColor="#000"
-            android:gravity="center_vertical"
-            android:layout_marginLeft="10dp"
-            android:textSize="18dp"
-            android:text="전화번호 : 010-1111-2222 " />
-        
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:tag="bold"
-            android:textColor="#000"
+            android:text="전화번호 : " />
+
+        <ImageButton
+            android:id="@+id/call_btn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
-            android:textSize="15dp"
-            android:text="전화" />     
-    </RelativeLayout> 
-    
-    <RelativeLayout
-        android:layout_alignParentTop="true"
-        android:layout_width="match_parent"
-        android:layout_height="70dp">
+            android:layout_toLeftOf="@+id/sms_btn"
+            android:background="@drawable/call_button" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:tag="bold"
-            android:textColor="#000"
-            android:gravity="center_vertical"
-            android:layout_marginLeft="10dp"
-            android:textSize="18dp"
-            android:text="주소 : " />
-   
-    </RelativeLayout>     
-    
-    <RelativeLayout
-        android:layout_alignParentTop="true"
-        android:layout_width="match_parent"
-        android:layout_height="70dp">
+        <ImageButton
+            android:id="@id/sms_btn"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/sms_button" />
+    </RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:tag="bold"
-            android:textColor="#000"
-            android:gravity="center_vertical"
-            android:layout_marginLeft="10dp"
-            android:textSize="18dp"
-            android:text="특징 : " />
-   
-    </RelativeLayout>      
-    
-    
+    <TextView
+        android:id="@+id/tel"
+        style="@style/input"
+        android:layout_centerVertical="true"
+        android:tag="bold"
+        android:layout_marginTop="2dp"
+        android:textColor="#000"
+        android:textSize="18dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#e5e5e5" />
+
+    <TextView
+        style="@style/label"
+        android:tag="bold"
+        android:text="주소 : " />
+
+    <TextView
+        android:id="@+id/address"
+        style="@style/input" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2px"
+        android:background="#e5e5e5" />
+
 </LinearLayout>

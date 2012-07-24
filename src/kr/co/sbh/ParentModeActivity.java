@@ -157,7 +157,8 @@ CurrentLocationEventListener, POIItemEventListener {
 
         		// 출발 위치 넣어주기
         		startPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
-			}else if(index == list.size() -1){
+			}else if(index == list.size() -1 && p.getPathFlag().equals("end")){	// 도착일 경우만
+
 				//if(p.getPathFlag() != null &&
 				//	p.getPathFlag().equals("arrive")){	// 도착 아이콘
 				// 도착 아이콘 처리
@@ -262,6 +263,8 @@ CurrentLocationEventListener, POIItemEventListener {
 						point.setLatitude(Double.valueOf(parser.nextText()));
 					}else if(strName.equals("lng")){			// 경도
 						point.setLongitude(Double.valueOf(parser.nextText()));
+					}else if(strName.equals("flag")){			// 출발, 도착 플레그
+						point.setPathFlag(parser.nextText());				
 					}else if(strName.equals("date")){			// 업로드 시각
 						point.setDate(parser.nextText());
 						list.add(point);

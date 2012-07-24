@@ -28,7 +28,7 @@ public class BaseActivity extends Activity {
     public static final String SERVER_URL = "ddononi.cafe24.com";	//	서버 주소
     public static final int MAX_SERVER_CONNECT_COUNT = 5;	//	최대 서버 연결 회수
     public static final String GET_URL = "/safeComeHome/loadPath.php";	// 경로 가져오기
-    public static final String WARD_INFO_URL = "/safeComeHome/loadPath.php";	// 피보호자 정보 가져오기
+    public static final String WARD_INFO_URL = "/safeComeHome/loadWardInfo.php";	// 피보호자 정보 가져오기
     public static final String WARD_IMAGE_URL = "/safeComeHome/uploads/";
 
     public static final int MAX_FILE_NAME_LENGTH = 100;			// 최대 파일 이름

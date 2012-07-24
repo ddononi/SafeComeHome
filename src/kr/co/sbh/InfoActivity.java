@@ -16,11 +16,18 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.res.XmlResourceParser;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  *	피보호자정보를 서버로부터 받아와서
@@ -62,8 +69,43 @@ public class InfoActivity extends BaseActivity {
 			if(result && data != null){
 				WebImageView wardImage = (WebImageView)findViewById(R.id.ward_image);
 				wardImage.setImasgeUrl("http://" + SERVER_URL + WARD_IMAGE_URL + data.getImageFileName());
-			}else{
+				
+				// 이름 채우기
+				TextView name = (TextView)findViewById(R.id.ward_name);
+				name.setText(data.getName());
+				 
+				// 전화번호 채우기
+				TextView tel = (TextView)findViewById(R.id.tel);
+				tel.setText(data.getTel());		
+				// 전화걸기
+				ImageButton callBtn  = (ImageButton)findViewById(R.id.call_btn);
+				callBtn.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {		// 전화하기
+						Uri uri = Uri.parse("tel:" + data.getTel() );
+						Intent intent = new Intent(Intent.ACTION_DIAL,uri);
+						startActivity(intent);
+					}
+				});
+				// 문자 보내기
+				ImageButton smsBtn  = (ImageButton)findViewById(R.id.sms_btn);
+				smsBtn.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {		// 문자 보내기
+						String emailAddr = "smsto:" +  data.getTel();
+						Uri uri = Uri.parse(emailAddr);
+						Intent intent = new Intent(Intent.ACTION_SENDTO, uri);
+						startActivity(intent);
+					}
+				});				
+				
+				// 주소 채우기
+				TextView address = (TextView)findViewById(R.id.address);
+				address.setText(data.getAddress());						
+				
 
+			}else{
+				Toast.makeText(InfoActivity.this, "피보호자 정보를 가져오는 실패 했습니다.", Toast.LENGTH_SHORT).show();
 			}
 		}
 
@@ -125,7 +167,7 @@ public class InfoActivity extends BaseActivity {
 						}else if(strName.equals("tel")){					// 전화번호
 							data.setTel(parser.nextText());
 						}else if(strName.equals("address")){				// 주소
-							data.setName(parser.nextText());
+							data.setAddress(parser.nextText());
 						}else if(strName.equals("email")){					// 이메일
 							data.setEmail(parser.nextText());
 						}else if(strName.equals("desc")){					// 특징

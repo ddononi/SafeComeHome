@@ -55,6 +55,7 @@ import android.widget.Toast;
  *		<li>이름</li>
  *		<li>메세지</li>
  *		<li>보호자 전화번호</li>
+ *		<li>주소</li>
  *		<li>이미지</li>
  */
 public class ChildRegActivity extends BaseActivity implements OnClickListener {
@@ -62,8 +63,9 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 	private EditText nameEt;			// 이름
 	private EditText phoneEt;			// 보호자-1 전화
 	private EditText subPhoneEt;		// 보호자-2 전화
-	private EditText parentEmailEt;		// 보호자 이메일
+	private EditText parentEmailEt;	// 보호자 이메일
 	private EditText wardEmailEt;		// 피보호자 이메일
+	private EditText addressET;		// 피보호자 주소
 	private ImageView picIv;
 	private SharedPreferences settings;
 
@@ -206,6 +208,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		picIv = (ImageView)findViewById(R.id.avata_image);
 		parentEmailEt = (EditText)findViewById(R.id.parent_email);
 		wardEmailEt = (EditText)findViewById(R.id.ward_email);
+		addressET = (EditText)findViewById(R.id.ward_address);
 		ImageButton joinBtn = (ImageButton)findViewById(R.id.pic_reg_btn);
 		Button regBtn = (Button)findViewById(R.id.register_btn);
 		// 이벤트 설정
@@ -328,6 +331,11 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 			return false;
 		}
 
+		if(TextUtils.isEmpty(addressET.getText())){
+			Toast.makeText(this, "사용자 주소를 등록하세요", Toast.LENGTH_SHORT).show();
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -343,6 +351,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		param.subPhone = subPhoneEt.getText().toString();
 		param.parentEmail = parentEmailEt.getText().toString();
 		param.wardEmail = wardEmailEt.getText().toString();
+		param.address =  addressET.getText().toString();
 		param.fileName = selectedFile;
 		// 파라미터로 사용자 정보를 넘겨주고 쓰레드로 업로드처리한다.
 		new AsyncTaskUserInfoUpload().execute(param);
@@ -464,12 +473,13 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 					// this.receiveFiles = receiveFiles;
 				}
 				// HTTP post 메서드를 이용하여 데이터 업로드 처리
-	            vars.add(new BasicNameValuePair("name", jp.name));			// 이름
-	            vars.add(new BasicNameValuePair("phone1", jp.phone));			// 주전화번호
+	            vars.add(new BasicNameValuePair("name", jp.name));					// 이름
+	            vars.add(new BasicNameValuePair("phone1", jp.phone));				// 주 전화번호
 	            vars.add(new BasicNameValuePair("phone2", jp.subPhone));			// 보조 전화번호
 	            vars.add(new BasicNameValuePair("parent_email", jp.parentEmail));	// 이메일
 	            vars.add(new BasicNameValuePair("ward_email", jp.wardEmail));		// 이메일
-	            vars.add(new BasicNameValuePair("user_image", receiveFiles));	// 이미지명
+	            vars.add(new BasicNameValuePair("user_image", receiveFiles));		// 이미지명
+	            vars.add(new BasicNameValuePair("ward_address", jp.address ));					// 주소	            
 	            vars.add(new BasicNameValuePair("child_phone", di.getDeviceNumber()));	// 사용자 전화번호
 	            String url = "http://" + SERVER_URL + UPLOAD_URL;	// + "?" + URLEncodedUtils.format(vars, null);
 	            HttpPost request = new HttpPost(url);
@@ -522,6 +532,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		String parentEmail;
 		String wardEmail;
 		String fileName;
+		String address;
 	}
 
 }
