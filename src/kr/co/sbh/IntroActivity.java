@@ -1,6 +1,7 @@
 package kr.co.sbh;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -9,6 +10,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import android.app.ActivityManager;
+import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,7 +34,24 @@ public class IntroActivity extends BaseActivity {
         setContentView(R.layout.intro_layout);
        	this.init();	// 초기화
 
+		//Intent serviceIntent = new Intent(getApplicationContext(), LocationService.class);
+		//serviceIntent.
+		
     }
+    
+    private void serviceList(){
+        /* 실행중인 service 목록 보기 */
+        ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningServiceInfo> rs = am.getRunningServices(50);
+
+        for(int i=0; i<rs.size(); i++){
+            ActivityManager.RunningServiceInfo rsi = rs.get(i);
+            ComponentName serviceName = rsi.service;
+            PendingIntent pi = PendingIntent.getService(this, 0, new Intent(this, LocationService.class), PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+
+ 
+    }    
 
     /**
      *	초기설정

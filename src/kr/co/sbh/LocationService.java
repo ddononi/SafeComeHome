@@ -7,7 +7,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
 
+import kr.co.sbh.data.PathPoint;
+import kr.co.sbh.data.PathWapperData;
+
 import net.daum.mf.map.api.MapPoint;
+import net.daum.mf.map.api.MapPoint.GeoCoordinate;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -41,6 +45,8 @@ import android.widget.Toast;
  * 공유설정에서 알람시간을 가져와 알람을 실행하고 알람시간이 되면 브로드캐스팅을 한다.
  */
 public class LocationService extends Service {
+	private ArrayList<MapPoint> pathList = new ArrayList<MapPoint>();	// 경로를 저장할 collection list	
+	
 	private Calendar calendar = null; // 현재시간
 	private AlarmManager am = null; // 알람 서비스
 	private Location mLocation;
@@ -51,6 +57,15 @@ public class LocationService extends Service {
 	/** 서비스가 실행될때 */
 	@Override
 	public int onStartCommand(final Intent intent, final int flags, final int startId) {
+		if(intent.hasExtra("pathList")){	// 경로가 있으면 가져온다.
+			ArrayList<PathPoint> list = intent.getParcelableArrayListExtra("pathList");		
+			for(PathPoint point : list){
+				 MapPoint mapPoint =MapPoint.mapPointWithGeoCoord(point.getLatitude(), point.getLongitude());
+				 pathList.add(mapPoint);
+			}		
+		}
+		
+		
 		getLocation();
 		setNotification();
 
@@ -102,20 +117,19 @@ public class LocationService extends Service {
 			Log.w(BaseActivity.DEBUG_TAG, "onLocationChanged");
 			// 현재 위치정보가 없을때 한번만 현재 위치로 중심을 이동한다.
 			if(mLocation == null){
-				Toast.makeText(getApplicationContext(), "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
 				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
 				// 경로 그리기 시작
-				WardModeActivity.pathList.add(point);	// 경로를 저장한다.							
+				pathList.add(point);	// 경로를 저장한다.							
 				uts = new UploadToServer(point, "");
 				uts.start();
 			}else{
 				// 출발후면
 				// 이전 위치값과 비교해 정확한 위치라면 list에 넣어준다.
-				if(WardModeActivity.isStarted && GeoUtils.isBetterLocation(mLocation,location )){		
+				if(GeoUtils.isBetterLocation(mLocation,location )){		
 					//if(GeoUtils.distanceKm(mLocation.getLatitude(), mLocation.getLongitude(),
 					//		location.getLatitude(), location.getLongitude())  >= 0.01){	//10 미터이상 이동했을경우만 패스 저장
 						MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-						WardModeActivity.pathList.add(point);	// 경로를 저장한다.						
+						pathList.add(point);	// 경로를 저장한다.						
 						// 서버에 업로드
 						uts = new UploadToServer(point, "");
 						uts.start();	
@@ -219,6 +233,18 @@ public class LocationService extends Service {
 		// MyScheduleActivity 로 엑티비티 설정
 
 		Intent contentIntent = new Intent(this, WardModeActivity.class);
+		ArrayList<PathPoint> list = new ArrayList<PathPoint>();
+		PathPoint data;
+		for(MapPoint point : pathList){
+			 GeoCoordinate coord = point.getMapPointGeoCoord();
+			 data = new PathPoint();
+			 data.setLatitude( coord.latitude);
+			 data.setLongitude(coord.longitude);
+			 list.add(data);
+		}
+		contentIntent.putParcelableArrayListExtra("pathList", list);
+		
+		
 		contentIntent.putExtra("resume", true);
 		// 알림클릭시 이동할 엑티비티 설정
 		PendingIntent theappIntent = PendingIntent.getActivity(this, 0,contentIntent, 0);

@@ -1,6 +1,7 @@
 package kr.co.sbh;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream.PutField;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,10 +9,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
+import kr.co.sbh.data.PathPoint;
+import kr.co.sbh.data.PathWapperData;
+
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPOIItem.MarkerType;
 import net.daum.mf.map.api.MapPOIItem.ShowAnimationType;
 import net.daum.mf.map.api.MapPoint;
+import net.daum.mf.map.api.MapPoint.GeoCoordinate;
 import net.daum.mf.map.api.MapPolyline;
 import net.daum.mf.map.api.MapReverseGeoCoder;
 import net.daum.mf.map.api.MapReverseGeoCoder.ReverseGeoCodingResultListener;
@@ -74,7 +79,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 
 	private LocationManager locationManager;
 	private Location mLocation = null;
-	protected static List<MapPoint> pathList = new ArrayList<MapPoint>();	// 경로를 저장할 collection list
+	private ArrayList<MapPoint> pathList = new ArrayList<MapPoint>();	// 경로를 저장할 collection list
 	private Button traceBtn;
 	protected static boolean isStarted = false;	// 출발여부
 	protected static boolean isEnded = false;	// 도착여부
@@ -92,33 +97,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
         sp = getSharedPreferences(PREFER, MODE_PRIVATE);
         getLocation();
         initMap();
-
-        Intent it = getIntent();
-        if(it.getBooleanExtra("resume", false) == true){
-        	int index = 0;
-        	// 우선 모든 아이템과 경로를 지워준다.
-        	mapView.removeAllPOIItems();
-    		mapView.removeAllPolylines();
-        	for(MapPoint point : pathList){
-        		if(index == 0){	// 경로의 첫 시작이면
-	        		MapPOIItem item = new MapPOIItem();
-	        		// poi 아이템 설정
-	        		item.setTag(START_TAG);
-	        		item.setItemName("출발");
-	        		item.setMapPoint(point);
-	        		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
-	        		item.setMarkerType(MarkerType.CustomImage);
-	        		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
-	        		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
-	        		// 맵에 붙여준다.
-	        		mapView.addPOIItem(item);
-        		}
-       			tracePath.addPoint(point);
-        		// 맵뷰에 붙여준다.
-        		mapView.addPolyline(tracePath);
-        		index++;
-        	}
-        }
+        
         traceBtn = (Button)findViewById(R.id.trace_btn);
         traceBtn.setClickable(false);	// 현재 위치를 찾기 전까지는 클릭 잠금
 
@@ -174,6 +153,17 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			// 서비스설정
 			Intent serviceIntent = new Intent(this, LocationService.class);
 			stopService(serviceIntent);
+			
+			ArrayList<PathPoint> list = new ArrayList<PathPoint>();
+			PathPoint data;
+			for(MapPoint point : pathList){
+				 GeoCoordinate coord = point.getMapPointGeoCoord();
+				 data = new PathPoint();
+				 data.setLatitude( coord.latitude);
+				 data.setLongitude(coord.longitude);
+				 list.add(data);
+			}
+			serviceIntent.putParcelableArrayListExtra("pathList", list);
 			startService(serviceIntent);
 			Log.i(DEBUG_TAG, "service start!!");
 	}
@@ -421,6 +411,57 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		return provider1.equals(provider2);
 
 	}
+	
+	
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+        Intent intent = getIntent();
+        if(intent.getBooleanExtra("resume", false) == true){
+    		if(intent.hasExtra("pathList")){	// 경로가 있으면 가져온다.
+    			pathList = new ArrayList<MapPoint>();
+    			ArrayList<PathPoint> list = intent.getParcelableArrayListExtra("pathList");		
+    			for(PathPoint point : list){
+    				 MapPoint mapPoint =MapPoint.mapPointWithGeoCoord(point.getLatitude(), point.getLongitude());
+    				 pathList.add(mapPoint);
+    			}		
+    		}
+    		
+        	int index = 0;
+        	// 우선 모든 아이템과 경로를 지워준다.
+        	mapView.removeAllPOIItems();
+    		mapView.removeAllPolylines();
+        	for(MapPoint point : pathList){
+        		if(index == 0){	// 경로의 첫 시작이면
+	        		MapPOIItem item = new MapPOIItem();
+	        		// poi 아이템 설정
+	        		item.setTag(START_TAG);
+	        		item.setItemName("출발");
+	        		item.setMapPoint(point);
+	        		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
+	        		item.setMarkerType(MarkerType.CustomImage);
+	        		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
+	        		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
+	        		// 맵에 붙여준다.
+	        		mapView.addPOIItem(item);
+        		}
+        		
+    			// 경로 넣어주기
+       			//tracePath.addPoint(point);
+        		index++;
+        	}
+        	
+        	drawPath();
+	        intent.removeExtra("resume");		
+	        
+			isStarted = true;
+			traceBtn.setText("도착");	        			
+			startTrace();
+        }		
+        
+	}
 
 	@Override
 	public void onClick(final View v) {
@@ -479,6 +520,23 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			break;
 		}
 	}
+	
+	
+	
+
+	@Override
+	protected void onStop() {
+		// 출발후라면 종료후에도 서비스로 구동될수 있도록 한다.
+		if(isStarted && isEnded == false){
+			Toast.makeText(this, "백그라운드로 위치경로를 업데이트 합니다.", Toast.LENGTH_SHORT).show();		
+			
+			doStartService();
+		}
+
+		super.onStop();
+		
+	}
+
 
 	private void searchMyPlace() {
 		Location tmpLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
@@ -553,7 +611,6 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 		// 맵에 붙여준다.
 		mapView.addPOIItem(item);
-        doStartService();	// 서비스로 위치수신
 		startTimeTv.setText("출발시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
 		uts = new UploadToServer(point, "start", startPlaceTv.getText().toString(), startTimeTv.getText().toString());
 		uts.start();

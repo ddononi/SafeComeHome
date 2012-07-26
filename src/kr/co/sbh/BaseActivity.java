@@ -111,13 +111,14 @@ public class BaseActivity extends Activity {
 			public void onClick(final DialogInterface dialog, final int which) {
 				// TODO Auto-generated method stub
 				// 서비스중지
+				/*
 				Intent serviceIntent = new Intent(getApplicationContext(), LocationService.class);
 				stopService(serviceIntent);
 				Log.i(DEBUG_TAG, "service start!!");
-
+				*/
 				moveTaskToBack(true);
 				finish();
-				android.os.Process.killProcess(android.os.Process.myPid() );
+				//android.os.Process.killProcess(android.os.Process.myPid() );
 			}
 		}).setNegativeButton("취소",null).show();
     }
