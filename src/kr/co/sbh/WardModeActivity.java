@@ -108,6 +108,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	private TextView startTimeTv;		// 출발 시간
 	private TextView endTimeTv;			// 도착 시간
 	
+	private boolean running = false;
 	private SharedPreferences mPrefer;
 	// ui 처리를 위한 핸들러
 	private final Handler mHandler = new Handler() {
@@ -137,6 +138,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
         
 		// 출발후이면 서버에서 이동 경로 가져오기
 		if(mPrefer.getBoolean("isStarted", false)){
+			running = true;
 			new LoadPathThread().start();
 			// 다시 서비스 시작
 			Intent serviceIntent = new Intent(this, TrackerService.class);        
@@ -577,6 +579,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				//trackerService.startTracker();
 				((Button)v).setText("도착");
 			}else{
+				running = false;
+				if(mLocation == null){
+					return;
+				}
 				endTrace();
 				isEnded = true;
 				// 도착완료이면 클릭 버튼을 숨긴다.
@@ -636,7 +642,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			trackerService.removePathList();
 			//unbindService(serviceConnection);
 		}
-
+		running = false;
 		super.onDestroy();
 		
 	}
@@ -699,6 +705,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	 * 추적 시작시 출발 오버레이 아이템을 생성하고 맵뷰에 븉여준다.
 	 */
 	private void startTrace() {
+
 		MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
 
 		reverseGeoCoder = new MapReverseGeoCoder(DAUM_LOCAL_KEY, point, this, this);
@@ -715,6 +722,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 		// 맵에 붙여준다.
 		mMapView.addPOIItem(item);
+
 		startTimeTv.setText("출발시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
 		uts = new UploadToServer(point, "start", startPlaceTv.getText().toString(), startTimeTv.getText().toString());
 		uts.start();
@@ -747,10 +755,14 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 		// 맵에 붙여준다.
 		mMapView.addPOIItem(item);
-	
-		GeoCoordinate gp = point.getMapPointGeoCoord();
-		polyline.addPoint(
-				MapPoint.mapPointWithGeoCoord(gp.latitude,  gp.longitude));
+		if(polyline != null){
+		    polyline = new MapPolyline();
+			polyline.setTag(1);
+			polyline.setLineColor(Color.argb(128, 255, 0, 0));
+		}
+		try{
+			polyline.addPoint(point);
+		}catch(Exception e){}
 		// 맵뷰에 붙여준다.
 		mMapView.addPolyline(polyline);		
 		
@@ -763,6 +775,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		uts.start();
 		
 		drawPath();
+		// 현재 위치 아이템 제거
+		mMapView.removePOIItem(mMapView.findPOIItemByTag(10));
 	}
 
 
@@ -777,7 +791,6 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 					if(isEnded == true || isStarted == false){
 						Intent serviceIntent = new Intent(WardModeActivity.this, TrackerService.class);
 						stopService(serviceIntent);
-						trackerService.removePathList();
 						// 서비스 바인딩 해제
 						//unbindService(serviceConnection);
 					}
@@ -950,23 +963,27 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			List<PathPoint> list;
-			try {
-
-				Log.i("safe", "thread start" );
-				list = processXML();
-				Message msg = new Message();
-				msg.obj = list;
-				mHandler.sendMessage(msg);
-			} catch (XmlPullParserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			while (running) {			
+			List<PathPoint> list;			
+				// TODO Auto-generated method stub
+				try {
+						Log.i("safe", "thread start" );
+						list = processXML();
+						Message msg = new Message();
+						msg.obj = list;
+						mHandler.sendMessage(msg);
+						Thread.sleep(10 * 1000);
+				} catch (XmlPullParserException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-
 			super.run();
 		}
 
@@ -1077,7 +1094,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			}else if(index == list.size() -1 && !p.getPathFlag().equals("end")){	// 도착은 아니지만 마지막 위치에 캐릭터 설정
 				MapPOIItem endItem = new MapPOIItem();
 				// poi 아이템 설정
-				endItem.setTag(END_TAG);
+				endItem.setTag(10);
 				endItem.setItemName("현이동위치");
 				endItem.setMapPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()));
 				endItem.setShowAnimationType(ShowAnimationType.SpringFromGround);

@@ -181,6 +181,7 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 		Intent intent = null;
 		intent = new Intent();
 		switch (which) {
+		/*
 		case 0: // 사진 촬영이면
 
 			// intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -188,7 +189,8 @@ public class ChildRegActivity extends BaseActivity implements OnClickListener {
 
 			startActivityForResult(intent, TAKE_PICTURE);
 			break;
-		case 1: // 사진 선택이면
+			*/
+		case 0: // 사진 선택이면
 			intent.setAction(Intent.ACTION_GET_CONTENT);
 			intent.setDataAndType(Uri.parse("*.jpg"), "image/*");
 			startActivityForResult(intent, ACTION_RESULT);

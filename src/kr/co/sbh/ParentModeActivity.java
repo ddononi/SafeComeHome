@@ -55,7 +55,7 @@ CurrentLocationEventListener, POIItemEventListener {
 	private final ProgressDialog dialog = null;
 	private MapPoint.GeoCoordinate mapPointGeo;	// 현위치를 받을 point 객체
 	
-	public final int REFRESH_TIME = 10;				// 서버에서 목록 갱신 초
+	public final int REFRESH_TIME = 5;				// 서버에서 목록 갱신 초
 	// ui 처리를 위한 핸들러
 	private final Handler handler = new Handler() {
     	@Override
@@ -174,7 +174,7 @@ CurrentLocationEventListener, POIItemEventListener {
 
         		// 출발 위치 넣어주기
         		startPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
-			}else if(index == list.size() -1 && p.getPathFlag().equals("end")){	// 도착일 경우만
+			}else if(p.getPathFlag().equals("end")){	// 도착일 경우만
 
 				//if(p.getPathFlag() != null &&
 				//	p.getPathFlag().equals("arrive")){	// 도착 아이콘
@@ -198,7 +198,8 @@ CurrentLocationEventListener, POIItemEventListener {
         		TextView endPlaceTv = (TextView)findViewById(R.id.end_place);
         		// 도착 위치 넣어주기
         		endPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>도착장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
-			}else if(index == list.size() -1){	// 도착은 아니지만 마지막 위치에 캐릭터 설정
+
+			}else if(index == list.size() && !p.getPathFlag().equals("end")){	// 도착은 아니지만 마지막 위치에 캐릭터 설정
 				MapPOIItem endItem = new MapPOIItem();
 				// poi 아이템 설정
 				endItem.setTag(END_TAG);

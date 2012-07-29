@@ -78,7 +78,7 @@ public class BaseActivity extends Activity {
     /** notif id 값 */
 	public static final int MY_NOTIFICATION_ID = 1;	// 앱 아이디값
 	/** 미이동 주기 카운트 */
-	public static final int CALL_COUNT = 10;
+	public static final int CALL_COUNT = 2;
 
 
 	public static Typeface typeFace = null;
