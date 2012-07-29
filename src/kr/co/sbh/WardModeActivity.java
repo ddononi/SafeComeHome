@@ -735,7 +735,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	private void endTrace() {
 
 		// 현재 위치를 얻고
-
+		isEnded = true;
 		MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
 
 		
@@ -874,16 +874,19 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		*/
 		Toast.makeText(this, addressString, Toast.LENGTH_SHORT).show();
 		// 시작 poiitem 을 찾는다.
-		MapPOIItem item = mMapView.findPOIItemByTag(START_TAG);
-		try{
-			item.setItemName(addressString);
-		}catch(NullPointerException npe){}
-		
-		mMapView.addPOIItem(item);
-
 		if(isEnded == false){
+			MapPOIItem item = mMapView.findPOIItemByTag(START_TAG);
+			try{
+				item.setItemName(addressString);
+			}catch(NullPointerException npe){}
+			mMapView.addPOIItem(item);
 			startPlaceTv.setText("출발 위치 : " + addressString);
 		}else{
+			MapPOIItem item = mMapView.findPOIItemByTag(END_TAG);
+			try{
+				item.setItemName(addressString);
+			}catch(NullPointerException npe){}			
+			mMapView.addPOIItem(item);
 			endPlaceTv.setText("도착 위치 : " + addressString);
 		}
 
@@ -1074,6 +1077,9 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			if(index == 0){	// 출발 아이콘
 				// 출발 아이콘 처리
         		MapPOIItem item = new MapPOIItem();
+        		MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
+        		reverseGeoCoder = new MapReverseGeoCoder(DAUM_LOCAL_KEY, point, this, this);
+        		reverseGeoCoder.startFindingAddress();        		
         		// poi 아이템 설정
         		item.setTag(START_TAG);
         		item.setItemName("출발");
