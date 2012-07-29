@@ -28,7 +28,7 @@
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".InfoActivity"></activity>
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".MenuActivity"></activity>
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".ParentModeActivity"></activity>
-		<service android:name=".LocationService"></service>      
+		<service android:name=".TrackerService"></service>      
     </application>
     <uses-permission android:name="android.permission.RECORD_VIDEO" />  
 	<uses-feature android:name="android.hardware.camera"/>

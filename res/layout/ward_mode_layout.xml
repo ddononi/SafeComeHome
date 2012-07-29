@@ -60,16 +60,47 @@
   
     </RelativeLayout>
     
-    <LinearLayout 
-        android:layout_below="@id/top_title"
-	    android:layout_width="fill_parent"
-	    android:layout_height="match_parent"
-	    android:orientation="vertical"
-	    android:layout_weight="1"
-	    android:id="@+id/map_parent">        
-		      
-    </LinearLayout>
-    
+    <RelativeLayout 
+	        android:layout_below="@id/top_title"
+		    android:layout_width="fill_parent"
+		    android:layout_height="match_parent"  >      
+	    <LinearLayout 
+		    android:layout_width="fill_parent"
+		    android:layout_height="match_parent"
+		    android:orientation="vertical"
+		    android:layout_weight="1"
+		    android:id="@+id/map_parent">        
+	
+	    </LinearLayout>
+	    
+	    <Button
+	        android:layout_marginTop="15dp"
+	        android:layout_alignParentTop="true"
+	        android:layout_marginRight="5dp"
+	        android:layout_alignParentRight="true"
+	        android:layout_width="50dp"
+	        android:layout_height="45dp"
+	        android:text="+"
+	        android:id="@+id/zoom_in"
+	        android:background="@drawable/trace_btn"
+	        android:textColor="#fff"
+	        android:textSize="30dp"
+	        />   
+	        
+	    <Button
+	        android:layout_below="@id/zoom_in"
+	        android:layout_marginRight="5dp"
+	        android:layout_marginTop="5dp"
+	        android:layout_alignParentRight="true"
+	        android:layout_width="50dp"
+	        android:layout_height="45dp"
+	        android:text="-"
+	        android:id="@+id/zoom_out"
+	        android:background="@drawable/trace_btn"
+	        android:textColor="#fff"
+	        android:textSize="30dp"
+	        />     
+    </RelativeLayout>
     <LinearLayout 
         android:id="@+id/bottom_box"
         android:layout_alignParentBottom="true"

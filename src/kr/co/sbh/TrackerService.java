@@ -36,6 +36,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -44,8 +45,8 @@ import android.widget.Toast;
 /**
  * 공유설정에서 알람시간을 가져와 알람을 실행하고 알람시간이 되면 브로드캐스팅을 한다.
  */
-public class LocationService extends Service {
-	private ArrayList<MapPoint> pathList = new ArrayList<MapPoint>();	// 경로를 저장할 collection list	
+public class TrackerService extends Service implements LocationListener {
+	private ArrayList<MapPoint> pathList = null;	// 경로를 저장할 collection list	
 	
 	private Calendar calendar = null; // 현재시간
 	private AlarmManager am = null; // 알람 서비스
@@ -54,22 +55,27 @@ public class LocationService extends Service {
 	private int alarmDistance; // 알람 발생 간격 미터
 	private UploadToServer uts;	// 서버 업로드 쓰레드 	
 	protected int alarmCount = 0;	// 위치 이동여부 주기값 
+	
+	private boolean isStart = false;
 	/** 서비스가 실행될때 */
 	@Override
 	public int onStartCommand(final Intent intent, final int flags, final int startId) {
-		if(intent.hasExtra("pathList")){	// 경로가 있으면 가져온다.
-			ArrayList<PathPoint> list = intent.getParcelableArrayListExtra("pathList");		
-			for(PathPoint point : list){
-				 MapPoint mapPoint =MapPoint.mapPointWithGeoCoord(point.getLatitude(), point.getLongitude());
-				 pathList.add(mapPoint);
-			}		
-		}
-		
-		
+
+		startTracker();
+		return 0;
+	}
+
+	public void startTracker(){
+		/*
+		for(PathPoint point : list){
+			 MapPoint mapPoint =MapPoint.mapPointWithGeoCoord(point.getLatitude(), point.getLongitude());
+			 pathList.add(mapPoint);
+		}		
+		*/
+		pathList = new ArrayList<MapPoint>();	
+		isStart = true;
 		getLocation();
 		setNotification();
-
-		return 0;
 	}
 
 	@Override
@@ -84,14 +90,12 @@ public class LocationService extends Service {
 		Log.i("dservice", "stop!");
 		if(mLocation != null){
 			MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());		
-			uts = new UploadToServer(point, "end");		// 종료임을 알린다.
+			uts = new UploadToServer(point, "");		
 			uts.start();			
 		}
 		//	서비스가 끝날때 위치 수신리스너 제거
-		if(loclistener != null){
-			LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);			
-			locationManager.removeUpdates(loclistener);
-		}
+		LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);			
+		locationManager.removeUpdates(this);
 		
 		NotificationManager nm = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 		nm.cancel(BaseActivity.MY_NOTIFICATION_ID);
@@ -100,9 +104,8 @@ public class LocationService extends Service {
 	}
 
 	@Override
-	public IBinder onBind(final Intent arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public IBinder onBind(final Intent intent) {
+		return binder;
 	}
 
 	@Override
@@ -111,67 +114,6 @@ public class LocationService extends Service {
 		return super.onUnbind(intent);
 	}
 
-	// 위치 리스너 처리
-	private final LocationListener loclistener = new LocationListener() {
-		public void onLocationChanged(Location location) {
-			Log.w(BaseActivity.DEBUG_TAG, "onLocationChanged");
-			// 현재 위치정보가 없을때 한번만 현재 위치로 중심을 이동한다.
-			if(mLocation == null){
-				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-				// 경로 그리기 시작
-				pathList.add(point);	// 경로를 저장한다.							
-				uts = new UploadToServer(point, "");
-				uts.start();
-			}else{
-				// 출발후면
-				// 이전 위치값과 비교해 정확한 위치라면 list에 넣어준다.
-				if(GeoUtils.isBetterLocation(mLocation,location )){		
-					//if(GeoUtils.distanceKm(mLocation.getLatitude(), mLocation.getLongitude(),
-					//		location.getLatitude(), location.getLongitude())  >= 0.01){	//10 미터이상 이동했을경우만 패스 저장
-						MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-						pathList.add(point);	// 경로를 저장한다.						
-						// 서버에 업로드
-						uts = new UploadToServer(point, "");
-						uts.start();	
-						
-						alarmCount = 0;
-					//}
-				}else{
-					
-					// 일정주기동안 움직임이 없을경우 보호자에게 전화를 건다.
-
-					if(alarmCount++ == BaseActivity.CALL_COUNT){
-						// 위급 상황으로 판단하여 자동 동영상 녹화 및 저장후 
-						// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
-						Intent intent = new Intent(getBaseContext(), EmergencyCameraActivity.class);
-						PendingIntent pi = PendingIntent.getActivity(getBaseContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);					
-						try {
-							pi.send();
-						} catch (CanceledException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-					
-				}
-			}
-			Log.i(BaseActivity.DEBUG_TAG, "위치이동~~!~!");
-			mLocation = location;	// 위치 받아오기
-		}
-
-		public void onProviderDisabled(final String provider) {
-			Log.w(BaseActivity.DEBUG_TAG, "onProviderDisabled");
-		}
-
-		public void onProviderEnabled(final String provider) {
-			Log.w(BaseActivity.DEBUG_TAG, "onProviderEnabled");
-		}
-
-		public void onStatusChanged(final String provider, final int status,
-				final Bundle extras) {
-			Log.w(BaseActivity.DEBUG_TAG, "onStatusChanged");
-		}
-	};
 
 	/**
 	 * 위치 리스너 설정
@@ -192,8 +134,7 @@ public class LocationService extends Service {
 
 		String provider = locationManager.getBestProvider(criteria, true);
 		// 1분 간격 
-		locationManager.requestLocationUpdates(provider, 1000 * 60, 0,
-				loclistener);
+		locationManager.requestLocationUpdates(provider, 1000 * 60, 0, this);
 		mLocation = locationManager.getLastKnownLocation(provider);
 		/*
 		 * String provider; // gps 가 켜져 있으면 gps로 먼저 수신 if
@@ -225,9 +166,29 @@ public class LocationService extends Service {
 	/**
 	 * 일정주기동안 위치 이동이 없으면 보호자에게 전화걸기
 	 */
-	private void checkMovePath(){
-		
+	public void removePathList(){
+		pathList = null;
 	}	
+	
+	/**
+	 * 엑비티에서 전달할 이동경로 반환
+	 * @return
+	 */
+	public ArrayList<PathPoint> getPathList(){
+		if(pathList == null){
+			return null;
+		}
+		ArrayList<PathPoint> list = new ArrayList<PathPoint>();
+		PathPoint data;
+		for(MapPoint point : pathList){
+			 GeoCoordinate coord = point.getMapPointGeoCoord();
+			 data = new PathPoint();
+			 data.setLatitude( coord.latitude);
+			 data.setLongitude(coord.longitude);
+			 list.add(data);
+		}		
+		return list;
+	}
 	
 	private void setNotification(){
 		// MyScheduleActivity 로 엑티비티 설정
@@ -328,4 +289,86 @@ public class LocationService extends Service {
 		    context.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
 		}
 
+	@Override
+	public void onLocationChanged(Location location) {
+			if(isStart == false){
+				return;
+			}
+			Log.w(BaseActivity.DEBUG_TAG, "onLocationChanged");
+			// 현재 위치정보가 없을때 한번만 현재 위치로 중심을 이동한다.
+			if(mLocation == null){
+				MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
+				// 경로 그리기 시작
+				pathList.add(point);	// 경로를 저장한다.							
+				uts = new UploadToServer(point, "");
+				uts.start();
+			}else{
+				// 출발후면
+				// 이전 위치값과 비교해 정확한 위치라면 list에 넣어준다.
+				if(GeoUtils.isBetterLocation(mLocation,location )){		
+					//if(GeoUtils.distanceKm(mLocation.getLatitude(), mLocation.getLongitude(),
+					//		location.getLatitude(), location.getLongitude())  >= 0.01){	//10 미터이상 이동했을경우만 패스 저장
+						MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
+						pathList.add(point);	// 경로를 저장한다.						
+						// 서버에 업로드
+						uts = new UploadToServer(point, "");
+						uts.start();	
+						
+						alarmCount = 0;
+					//}
+				}else{
+					
+					// 일정주기동안 움직임이 없을경우 보호자에게 전화를 건다.
+
+					if(alarmCount++ == BaseActivity.CALL_COUNT){
+						// 위급 상황으로 판단하여 자동 동영상 녹화 및 저장후 
+						// 서버에 전송한후 서버에서 보호자에게 동영상을 첨부한 이메일을 발송한다.
+						Intent intent = new Intent(getBaseContext(), EmergencyCameraActivity.class);
+						PendingIntent pi = PendingIntent.getActivity(getBaseContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);					
+						try {
+							pi.send();
+						} catch (CanceledException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					
+				}
+			}
+			Log.i(BaseActivity.DEBUG_TAG, "위치이동~~!~!");
+			mLocation = location;	// 위치 받아오기
+		
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/**
+	 * 서비스 접근자 메서드
+	 */
+	public class TrackerBinder extends Binder{
+		TrackerService getService(){
+			return TrackerService.this;
+		}
+	}
+	
+	private final IBinder binder = new TrackerBinder();
+	
+	
+	
 }

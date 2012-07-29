@@ -54,6 +54,8 @@ CurrentLocationEventListener, POIItemEventListener {
 	private MapView mMapView = null;
 	private final ProgressDialog dialog = null;
 	private MapPoint.GeoCoordinate mapPointGeo;	// 현위치를 받을 point 객체
+	
+	public final int REFRESH_TIME = 10;				// 서버에서 목록 갱신 초
 	// ui 처리를 위한 핸들러
 	private final Handler handler = new Handler() {
     	@Override
@@ -72,8 +74,22 @@ CurrentLocationEventListener, POIItemEventListener {
 		setContentView(R.layout.parent_mode_layout);
 		initLayout();
 		Log.i("safe", "thread start" );
-		// 쓰레드로 서버에서 경로를 받아온다.
-		new LoadPathThread().start();
+		
+		loadPath(REFRESH_TIME);
+	}
+	
+	/**
+	 * 10초 주기로 서버에서 경로를 갱신한다.
+	 */
+	private void loadPath(final int sec){
+		new Handler().postDelayed(new Runnable() {
+			
+			@Override
+			public void run() {
+				new LoadPathThread().start();
+				loadPath(sec);
+			}
+		}, sec * 1000);	
 	}
 
 
@@ -129,6 +145,7 @@ CurrentLocationEventListener, POIItemEventListener {
 	private void drawPath(final List<PathPoint> list){
 		MapPolyline polyline = new MapPolyline();
 		mMapView.removeAllPolylines();	// 이전 지적선이 있으면 지워준다.
+		mMapView.removeAllPOIItems();	// 이전 아이템이 있으면 삭제
 		polyline.setTag(1);
 		polyline.setLineColor(Color.argb(128, 255, 0, 0));
 		// list에서 좌표를 가져와 polyline에 넣어준다.
@@ -181,6 +198,18 @@ CurrentLocationEventListener, POIItemEventListener {
         		TextView endPlaceTv = (TextView)findViewById(R.id.end_place);
         		// 도착 위치 넣어주기
         		endPlaceTv.setText(Html.fromHtml("<font style='font-weight:bold;'>도착장소 :</font> " ) + getAddress(p.getLatitude(), p.getLongitude()));
+			}else if(index == list.size() -1){	// 도착은 아니지만 마지막 위치에 캐릭터 설정
+				MapPOIItem endItem = new MapPOIItem();
+				// poi 아이템 설정
+				endItem.setTag(END_TAG);
+				endItem.setItemName("현이동위치");
+				endItem.setMapPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()));
+				endItem.setShowAnimationType(ShowAnimationType.SpringFromGround);
+				endItem.setMarkerType(MarkerType.CustomImage);
+				endItem.setCustomImageResourceId(R.drawable.green);
+				endItem.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
+				// 맵에 붙여준다.
+				mMapView.addPOIItem(endItem);	
 			}
 			polyline.addPoint(
 					MapPoint.mapPointWithGeoCoord(p.getLatitude(),  p.getLongitude()));
@@ -216,7 +245,7 @@ CurrentLocationEventListener, POIItemEventListener {
 
 	/**
 	 *  get방식으로 서버에서 조회값을 보내  서버에서 생성된 xml를 parsing하여
-	 *  접속하고 있는 전체 친구리스트를 가져온다.
+	 *   이동경로 가져온다.
 	 *
 	 * @return
 	 * 	접속된 전체 유저 리스트
@@ -253,7 +282,7 @@ CurrentLocationEventListener, POIItemEventListener {
 			int eventType = -1;
 			// 리스트에 담을 좌표 데이터 클래스
 			PathPoint point = null;
-
+			Log.i(DEBUG_TAG, decodeXMl);
 			// xml 노드를 순회하면서 위경도좌표와 시각을 가져와 리스트에 담는다.
 			while(eventType != XmlResourceParser.END_DOCUMENT){	// 문서의 마지막이 아닐때까지
 				if(eventType == XmlResourceParser.START_TAG){	// 이벤트가 시작태그면

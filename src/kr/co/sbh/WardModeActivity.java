@@ -1,7 +1,13 @@
 package kr.co.sbh;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.ObjectOutputStream.PutField;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,14 +41,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.backup.SharedPreferencesBackupHelper;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.XmlResourceParser;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -52,6 +66,9 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -70,12 +87,14 @@ import android.widget.Toast;
  */
 public class WardModeActivity extends BaseActivity implements OpenAPIKeyAuthenticationResultListener, MapViewEventListener,
 CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoCodingResultListener{
-	private MapView mapView;
+	private MapView mMapView;
 	private MapPOIItem poiItem;
+	private MapPolyline polyline;
 	private MapReverseGeoCoder reverseGeoCoder = null;
 	private final MapPolyline tracePath = new MapPolyline();
 	private SharedPreferences sp;								// 공유 환경설정
 	private UploadToServer uts;	// 서버 업로드 쓰레드
+	private TrackerService trackerService;
 
 	private LocationManager locationManager;
 	private Location mLocation = null;
@@ -88,7 +107,18 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	private TextView endPlaceTv;		// 도착 위치주소
 	private TextView startTimeTv;		// 출발 시간
 	private TextView endTimeTv;			// 도착 시간
-	private final Handler mHandler = new Handler();			// 핸들러
+	
+	private SharedPreferences mPrefer;
+	// ui 처리를 위한 핸들러
+	private final Handler mHandler = new Handler() {
+    	@Override
+		public void handleMessage(final Message msg) {
+    		@SuppressWarnings("unchecked")
+    		// 핸들러를 통해 path를 그려준다.
+			List<PathPoint> list = (List<PathPoint>)msg.obj;
+    		updateTrackerPath(list);
+    	}
+	};	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -98,7 +128,43 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
         getLocation();
         initMap();
         
-        traceBtn = (Button)findViewById(R.id.trace_btn);
+        initLayout();
+        mPrefer = getSharedPreferences("sbh", MODE_PRIVATE);
+		// 서비스 바인딩 시작
+		// 서비스설정
+		//Intent serviceIntent = new Intent(this, TrackerService.class);        
+		//bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        
+		// 출발후이면 서버에서 이동 경로 가져오기
+		if(mPrefer.getBoolean("isStarted", false)){
+			new LoadPathThread().start();
+			// 다시 서비스 시작
+			Intent serviceIntent = new Intent(this, TrackerService.class);        
+			startService(serviceIntent);
+		}        
+    }
+
+	/**
+	 * 위치 추적 서비스연결 커낵션
+	 */
+    /*
+	private ServiceConnection serviceConnection = new ServiceConnection(){
+
+		@Override
+		public void onServiceConnected(ComponentName arg0, IBinder service) {
+			trackerService = ((TrackerService.TrackerBinder)service).getService();
+			updateState();
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			trackerService = null;
+		}
+	};    
+	*/
+
+	private void initLayout() {
+		traceBtn = (Button)findViewById(R.id.trace_btn);
         traceBtn.setClickable(false);	// 현재 위치를 찾기 전까지는 클릭 잠금
 
         // 긴급 녹화 발송버튼
@@ -122,26 +188,37 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 
 		startTimeTv  = (TextView)findViewById(R.id.startTime);
 		endTimeTv  = (TextView)findViewById(R.id.endTime);
-    }
+	}
 
 	/**
 	 * 맵 키 설정 및 초기화 설정
 	 */
 	private void initMap() {
-        mapView = new MapView(this);
-        mapView.setDaumMapApiKey(MAP_KEY);
-        mapView.setOpenAPIKeyAuthenticationResultListener(this);
-        mapView.setMapViewEventListener(this);
-        mapView.setCurrentLocationEventListener(this);
-        mapView.setPOIItemEventListener(this);
+        mMapView = new MapView(this);
+        mMapView.setDaumMapApiKey(MAP_KEY);
+        mMapView.setOpenAPIKeyAuthenticationResultListener(this);
+        mMapView.setMapViewEventListener(this);
+        mMapView.setCurrentLocationEventListener(this);
+        mMapView.setPOIItemEventListener(this);
         // 지도 타입 설정
-        mapView.setMapType(MapView.MapType.Standard);
+        mMapView.setMapType(MapView.MapType.Standard);
         //	현위치를 표시하는 아이콘(마커)를 화면에 표시 안함
-        mapView.setShowCurrentLocationMarker(false);
+        mMapView.setShowCurrentLocationMarker(false);
         // 경로를 그려줄 색 설정
         tracePath.setLineColor(Color.argb(128, 255, 51, 0));
         ViewGroup parent = (ViewGroup)findViewById(R.id.map_parent);
-        parent.addView(mapView);
+        parent.addView(mMapView);
+	}
+	
+	/**
+	 * 경로가 있는지 체크
+	 */
+	private void updateState(){
+		    ArrayList<PathPoint> list = trackerService.getPathList();
+		    if(list != null){
+		    	updateTrackerPath(list);
+		    }
+		    
 	}
 
 	/**
@@ -151,9 +228,9 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	 */
 	private void doStartService() {
 			// 서비스설정
-			Intent serviceIntent = new Intent(this, LocationService.class);
+			Intent serviceIntent = new Intent(this, TrackerService.class);
 			stopService(serviceIntent);
-			
+			/*
 			ArrayList<PathPoint> list = new ArrayList<PathPoint>();
 			PathPoint data;
 			for(MapPoint point : pathList){
@@ -164,9 +241,14 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				 list.add(data);
 			}
 			serviceIntent.putParcelableArrayListExtra("pathList", list);
+			*/
+			// 서비스 구동
 			startService(serviceIntent);
+			// 서비스 바인딩 시작
+			//bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE);
 			Log.i(DEBUG_TAG, "service start!!");
 	}
+	
 
 	/*
 	 * 위치 설정 초기화
@@ -200,9 +282,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				return;
 			}
 
-			Toast.makeText(WardModeActivity.this, "현재위치로 이동합니다.", Toast.LENGTH_SHORT).show();
 			MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
-			mapView.setMapCenterPoint(point, true);
+			mMapView.setMapCenterPoint(point, true);
 			// 추적 버튼 풀기
 			traceBtn.setClickable(true);
 			// 이벤트 리스너 달아주기
@@ -323,7 +404,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				}
 				if(mLocation != null){
 					MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
-					mapView.setMapCenterPoint(point, true);
+					mMapView.setMapCenterPoint(point, true);
 					break;
 				}
 			}
@@ -337,12 +418,12 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	 */
 	private void drawPath() {
 		// 오전 모든 경로를 지운후 다시 그려준다.
-		mapView.removeAllPolylines();
+		mMapView.removeAllPolylines();
 		for(MapPoint p: pathList){
 			tracePath.addPoint(p);
 		}
 		// 맵뷰에 붙여준다.
-		mapView.addPolyline(tracePath);
+		mMapView.addPolyline(tracePath);
 
 	}
 
@@ -417,50 +498,61 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-        Intent intent = getIntent();
+		/*
+		Intent intent = getIntent();
         if(intent.getBooleanExtra("resume", false) == true){
     		if(intent.hasExtra("pathList")){	// 경로가 있으면 가져온다.
-    			pathList = new ArrayList<MapPoint>();
     			ArrayList<PathPoint> list = intent.getParcelableArrayListExtra("pathList");		
-    			for(PathPoint point : list){
-    				 MapPoint mapPoint =MapPoint.mapPointWithGeoCoord(point.getLatitude(), point.getLongitude());
-    				 pathList.add(mapPoint);
-    			}		
+	        	updateTrackerPath(list);		
+	            intent.removeExtra("resume");	
+    		}
+        }
+        */
+
+        
+	}
+
+	/**
+	 * 서비스로부터 경로 업데이트
+	 * @param list
+	 */
+	private void updateTrackerPath(List <PathPoint> list) {
+		pathList = new ArrayList<MapPoint>();
+		for(PathPoint point : list){
+			 MapPoint mapPoint =MapPoint.mapPointWithGeoCoord(point.getLatitude(), point.getLongitude());
+			 pathList.add(mapPoint);
+		}		
+		
+    	int index = 0;
+    	// 우선 모든 아이템과 경로를 지워준다.
+    	mMapView.removeAllPOIItems();
+		mMapView.removeAllPolylines();
+		/*
+    	for(MapPoint point : pathList){
+    		if(index == 0){	// 경로의 첫 시작이면
+        		MapPOIItem item = new MapPOIItem();
+        		// poi 아이템 설정
+        		item.setTag(START_TAG);
+        		item.setItemName("출발");
+        		item.setMapPoint(point);
+        		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
+        		item.setMarkerType(MarkerType.CustomImage);
+        		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
+        		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
+        		// 맵에 붙여준다.
+        		mMapView.addPOIItem(item);
     		}
     		
-        	int index = 0;
-        	// 우선 모든 아이템과 경로를 지워준다.
-        	mapView.removeAllPOIItems();
-    		mapView.removeAllPolylines();
-        	for(MapPoint point : pathList){
-        		if(index == 0){	// 경로의 첫 시작이면
-	        		MapPOIItem item = new MapPOIItem();
-	        		// poi 아이템 설정
-	        		item.setTag(START_TAG);
-	        		item.setItemName("출발");
-	        		item.setMapPoint(point);
-	        		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
-	        		item.setMarkerType(MarkerType.CustomImage);
-	        		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
-	        		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
-	        		// 맵에 붙여준다.
-	        		mapView.addPOIItem(item);
-        		}
-        		
-    			// 경로 넣어주기
-       			//tracePath.addPoint(point);
-        		index++;
-        	}
-        	
-        	drawPath();
-	        intent.removeExtra("resume");		
-	        
-			isStarted = true;
-			traceBtn.setText("도착");	        			
-			startTrace();
-        }		
+			// 경로 넣어주기
+   			//tracePath.addPoint(point);
+    		index++;
+    	}
+    	*/
+    	
+		drawPath(list);
         
+		isStarted = true;
+		traceBtn.setText("도착");	        			
 	}
 
 	@Override
@@ -475,6 +567,14 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				}
 				isStarted = true;
 				startTrace();
+				Toast.makeText(this, "백그라운드로 위치경로를 업데이트 합니다.", Toast.LENGTH_SHORT).show();
+				doStartService();				
+				// 공유 환경 설정에 출발기록을 하여 추후 다시 출발 상태로 가지 않도록 한다.
+				SharedPreferences.Editor editor = mPrefer.edit();
+				editor.putBoolean("isStarted", true);	// 출발로 저장
+				editor.commit();
+				
+				//trackerService.startTracker();
 				((Button)v).setText("도착");
 			}else{
 				endTrace();
@@ -482,14 +582,16 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				// 도착완료이면 클릭 버튼을 숨긴다.
 				v.setVisibility(View.GONE);
 				// 위치 리스너 제거
-				 locationManager.removeUpdates(loclistener);
+				SharedPreferences.Editor editor = mPrefer.edit();
+				editor.putBoolean("isStarted", false);	// 출발 해제
+				editor.commit();				
+				locationManager.removeUpdates(loclistener);
 			}
 			break;
 		case R.id.loc_btn :	// 현재 위치 찾기
 			if(mLocation != null){	// 현재 위치 정보가 있을때만
 				MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
-				mapView.setMapCenterPoint(point, true);
-				Toast.makeText(this, "현재 위치로 이동합니다.", Toast.LENGTH_SHORT).show();
+				mMapView.setMapCenterPoint(point, true);
 			}else{
 				// 네트워크로 공급자 변경후 다시 현재 위치 검색
 				locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000L, 0, loclistener);
@@ -525,17 +627,20 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	
 
 	@Override
-	protected void onStop() {
-		// 출발후라면 종료후에도 서비스로 구동될수 있도록 한다.
-		if(isStarted && isEnded == false){
-			Toast.makeText(this, "백그라운드로 위치경로를 업데이트 합니다.", Toast.LENGTH_SHORT).show();		
-			
-			doStartService();
+	protected void onDestroy() {
+		//	도착 혹은 출발하지 않았으면 서비스 및 바인딩 종료
+		if(isEnded == true || isStarted == false){
+			Intent serviceIntent = new Intent(this, TrackerService.class);
+			stopService(serviceIntent);
+			// 서비스 바인딩 해제
+			trackerService.removePathList();
+			//unbindService(serviceConnection);
 		}
 
-		super.onStop();
+		super.onDestroy();
 		
 	}
+
 
 
 	private void searchMyPlace() {
@@ -572,7 +677,6 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 					Address address = addresses.get(0);
 					// 실제 주소만 가져온다.
 					addressStr = address.getAddressLine(0).replace("대한민국", "").trim();
-					Toast.makeText(this, addressStr, Toast.LENGTH_LONG).show();
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -610,7 +714,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 		// 맵에 붙여준다.
-		mapView.addPOIItem(item);
+		mMapView.addPOIItem(item);
 		startTimeTv.setText("출발시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
 		uts = new UploadToServer(point, "start", startPlaceTv.getText().toString(), startTimeTv.getText().toString());
 		uts.start();
@@ -621,8 +725,12 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	 * 추적 종료시 종료 오버레이 아이템을 생성하고 맵뷰에 븉여준다.
 	 */
 	private void endTrace() {
+
 		// 현재 위치를 얻고
+
 		MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
+
+		
 		pathList.add(point);
 
 		reverseGeoCoder = new MapReverseGeoCoder(DAUM_LOCAL_KEY, point, this, this);
@@ -638,28 +746,46 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setCustomImageResourceId(R.drawable.custom_poi_marker_end);
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
 		// 맵에 붙여준다.
-		mapView.addPOIItem(item);
-
+		mMapView.addPOIItem(item);
+	
+		GeoCoordinate gp = point.getMapPointGeoCoord();
+		polyline.addPoint(
+				MapPoint.mapPointWithGeoCoord(gp.latitude,  gp.longitude));
+		// 맵뷰에 붙여준다.
+		mMapView.addPolyline(polyline);		
+		
 		// 서비스설정
-		Intent serviceIntent = new Intent(this, LocationService.class);
+		Intent serviceIntent = new Intent(this, TrackerService.class);
 		// 서비스 종료
 		stopService(serviceIntent);
 		endTimeTv.setText("도착시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
 		uts = new UploadToServer(point, "end", endPlaceTv.getText().toString(), endTimeTv.getText().toString());
 		uts.start();
+		
+		drawPath();
 	}
 
 
 	@Override
 	public void onBackPressed() {	//  뒤로 가기버튼 클릭시 종료 여부
-		// 도착 처리를 했으면 앱 종료 처리를 묻고
-		// 그렇지 않으면 종료확인을 묻지 않고 나간다.
-		/*
-		if(isEnded == false){
-			return;
-		}
-		*/
-		finishDialog(this);
+			AlertDialog.Builder ad = new AlertDialog.Builder(this);
+			ad.setTitle("").setMessage("종료 하시겠습니까?")
+			.setPositiveButton("종료", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(final DialogInterface dialog, final int which) {
+					//	도착 혹은 출발하지 않았으면 서비스 및 바인딩 종료
+					if(isEnded == true || isStarted == false){
+						Intent serviceIntent = new Intent(WardModeActivity.this, TrackerService.class);
+						stopService(serviceIntent);
+						trackerService.removePathList();
+						// 서비스 바인딩 해제
+						//unbindService(serviceConnection);
+					}
+					moveTaskToBack(true);
+					finish();
+					android.os.Process.killProcess(android.os.Process.myPid() );
+				}
+			}).setNegativeButton("취소",null).show();
 	}
 
 
@@ -702,13 +828,13 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 					public void onClick(final DialogInterface dialog, final int which) {
     					switch (which) {
     					case 0: // Standard
-    						mapView.setMapType(MapView.MapType.Standard);
+    						mMapView.setMapType(MapView.MapType.Standard);
     						break;
     					case 1: // Satellite
-    						mapView.setMapType(MapView.MapType.Satellite);
+    						mMapView.setMapType(MapView.MapType.Satellite);
     						break;
     					case 2: // Hybrid
-    						mapView.setMapType(MapView.MapType.Hybrid);
+    						mMapView.setMapType(MapView.MapType.Hybrid);
     						break;
     					}
     				}
@@ -735,9 +861,12 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		*/
 		Toast.makeText(this, addressString, Toast.LENGTH_SHORT).show();
 		// 시작 poiitem 을 찾는다.
-		MapPOIItem item = mapView.findPOIItemByTag(START_TAG);
-		item.setItemName(addressString);
-		mapView.addPOIItem(item);
+		MapPOIItem item = mMapView.findPOIItemByTag(START_TAG);
+		try{
+			item.setItemName(addressString);
+		}catch(NullPointerException npe){}
+		
+		mMapView.addPOIItem(item);
 
 		if(isEnded == false){
 			startPlaceTv.setText("출발 위치 : " + addressString);
@@ -812,6 +941,184 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	            }
 		}
 	}
+	
+
+    /**
+     *	이동 경로를 가져올 쓰레드
+     */
+    private class LoadPathThread extends Thread{
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			List<PathPoint> list;
+			try {
+
+				Log.i("safe", "thread start" );
+				list = processXML();
+				Message msg = new Message();
+				msg.obj = list;
+				mHandler.sendMessage(msg);
+			} catch (XmlPullParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			super.run();
+		}
+
+    }
+    
+	/**
+	 *  get방식으로 서버에서 조회값을 보내  서버에서 생성된 xml를 parsing하여
+	 *   이동경로 가져온다.
+	 *
+	 * @return
+	 * 	접속된 전체 유저 리스트
+	 * @throws XmlPullParserException
+	 * @throws IOException
+	 */
+	private List<PathPoint> processXML() throws XmlPullParserException, IOException {
+	    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+	    XmlPullParser parser = factory.newPullParser();
+	    InputStreamReader isr = null;
+	    BufferedReader br = null;
+		List<PathPoint> list = new ArrayList<PathPoint>();
+	    // namespace 지원
+	    factory.setNamespaceAware(true);
+	    // url 설정
+	    URL url = new URL("http://" + SERVER_URL + GET_URL);
+	    URLConnection conn = url.openConnection();
+	    // 연결 시간 설정
+	    conn.setConnectTimeout(2000);
+	    conn.setDoInput(true);
+	    conn.setDoOutput(true);
+		try{
+		    isr = new InputStreamReader(conn.getInputStream(), "UTF-8");
+		    br = new BufferedReader(isr);
+		    StringBuilder xml = new StringBuilder();
+		    String line = "";
+		    while((line = br.readLine()) != null){
+		    	xml.append(line);
+		    }
+		    String decodeXMl = URLDecoder.decode(xml.toString());
+			// xml 외의 문자 제거
+		    decodeXMl = decodeXMl.substring(decodeXMl.indexOf("<"), decodeXMl.lastIndexOf(">") + 1);
+		    parser.setInput(new StringReader(decodeXMl));
+			int eventType = -1;
+			// 리스트에 담을 좌표 데이터 클래스
+			PathPoint point = null;
+			Log.i(DEBUG_TAG, decodeXMl);
+			// xml 노드를 순회하면서 위경도좌표와 시각을 가져와 리스트에 담는다.
+			while(eventType != XmlResourceParser.END_DOCUMENT){	// 문서의 마지막이 아닐때까지
+				if(eventType == XmlResourceParser.START_TAG){	// 이벤트가 시작태그면
+					String strName = parser.getName();
+					if(strName.contains("lat")){				// 위도
+						point = new PathPoint();
+						point.setLatitude(Double.valueOf(parser.nextText()));
+					}else if(strName.equals("lng")){			// 경도
+						point.setLongitude(Double.valueOf(parser.nextText()));
+					}else if(strName.equals("flag")){			// 출발, 도착 플레그
+						point.setPathFlag(parser.nextText());				
+					}else if(strName.equals("date")){			// 업로드 시각
+						point.setDate(parser.nextText());
+						list.add(point);
+					}
+				}
+				eventType = parser.next();	// 다음이벤트로..
+			}
+		}finally{
+			if(isr != null){
+				isr.close();
+			}
+
+			if(br != null){
+				br.close();
+			}
+		}
+		return list;
+	}    
+	
+	/**
+	 * 이동경로 그려주기
+	 */
+	private void drawPath(final List<PathPoint> list){
+	    polyline = new MapPolyline();
+		mMapView.removeAllPolylines();	// 이전 지적선이 있으면 지워준다.
+		mMapView.removeAllPOIItems();	// 이전 아이템이 있으면 삭제
+		polyline.setTag(1);
+		polyline.setLineColor(Color.argb(128, 255, 0, 0));
+		// list에서 좌표를 가져와 polyline에 넣어준다.
+		int index = 0;
+		for(PathPoint p :list){
+			if(index == 0){	// 출발 아이콘
+				// 출발 아이콘 처리
+        		MapPOIItem item = new MapPOIItem();
+        		// poi 아이템 설정
+        		item.setTag(START_TAG);
+        		item.setItemName("출발");
+        		item.setMapPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()));
+        		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
+        		item.setMarkerType(MarkerType.CustomImage);
+        		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
+        		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
+        		// 맵에 붙여준다.
+        		mMapView.addPOIItem(item);
+
+        		// 출발 시간 넣어주기
+        		TextView startTimeTv  = (TextView)findViewById(R.id.startTime);
+        		startTimeTv.setText(Html.fromHtml("<font style='font-weight:bold;'>출발 시간 :</font> " )+ p.getDate());
+
+                // 출발 주소
+        		TextView startPlaceTv = (TextView)findViewById(R.id.start_place);
+			}else if(index == list.size() -1 && !p.getPathFlag().equals("end")){	// 도착은 아니지만 마지막 위치에 캐릭터 설정
+				MapPOIItem endItem = new MapPOIItem();
+				// poi 아이템 설정
+				endItem.setTag(END_TAG);
+				endItem.setItemName("현이동위치");
+				endItem.setMapPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()));
+				endItem.setShowAnimationType(ShowAnimationType.SpringFromGround);
+				endItem.setMarkerType(MarkerType.CustomImage);
+				endItem.setCustomImageResourceId(R.drawable.green);
+				endItem.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
+				// 맵에 붙여준다.
+				mMapView.addPOIItem(endItem);	
+			}
+			polyline.addPoint(
+					MapPoint.mapPointWithGeoCoord(p.getLatitude(),  p.getLongitude()));
+
+			index++;
+		}
+		// 맵뷰에 붙여준다.
+		mMapView.addPolyline(polyline);
+		// 모든 패스가 보이도록화면을 조정한다.
+		mMapView.fitMapViewAreaToShowAllPolylines();
+	}
+	
+
+	private String getAddress(final double lat, final double lng){
+		// Geocoder를 이용하여 좌표를 주소로 변환처리
+		Geocoder gc = new Geocoder(this,Locale.getDefault());
+		List<Address> addresses = null;
+		try {
+			addresses = gc.getFromLocation(lat, lng,  1);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String addressStr = "현위치";
+		if(addresses != null && addresses.size()>0) {	// 주소가 있으면
+			// 첫번째 주소 컬렉션을 얻은후
+			Address address = addresses.get(0);
+			// 실제 주소만 가져온다.
+			return address.getAddressLine(0).replace("대한민국", "").trim();
+		}
+
+		return "";
+	}	
 
 
 }

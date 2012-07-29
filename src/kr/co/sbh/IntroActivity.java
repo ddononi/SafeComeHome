@@ -15,43 +15,30 @@ import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 /**
  *	첫시작 엑티비티
  *	전화정보를 가져오고 터치시 다음화면으로 이동
  */
 public class IntroActivity extends BaseActivity {
-	String cellNum = "";
-
+	private String cellNum = "";
+	private TrackerService trackerService;
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.intro_layout);
        	this.init();	// 초기화
 
-		//Intent serviceIntent = new Intent(getApplicationContext(), LocationService.class);
-		//serviceIntent.
-		
     }
-    
-    private void serviceList(){
-        /* 실행중인 service 목록 보기 */
-        ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningServiceInfo> rs = am.getRunningServices(50);
 
-        for(int i=0; i<rs.size(); i++){
-            ActivityManager.RunningServiceInfo rsi = rs.get(i);
-            ComponentName serviceName = rsi.service;
-            PendingIntent pi = PendingIntent.getService(this, 0, new Intent(this, LocationService.class), PendingIntent.FLAG_UPDATE_CURRENT);
-        }
-
- 
-    }    
 
     /**
      *	초기설정
