@@ -134,7 +134,7 @@ public class TrackerService extends Service implements LocationListener {
 
 		String provider = locationManager.getBestProvider(criteria, true);
 		// 1분 간격 
-		locationManager.requestLocationUpdates(provider, 1000, 0, this);
+		locationManager.requestLocationUpdates(provider, 1000l, 10l, this);
 		mLocation = locationManager.getLastKnownLocation(provider);
 		/*
 		 * String provider; // gps 가 켜져 있으면 gps로 먼저 수신 if

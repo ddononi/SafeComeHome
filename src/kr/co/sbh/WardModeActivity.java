@@ -872,7 +872,6 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		alertDialog.setPositiveButton("OK", null);
 		alertDialog.show();
 		*/
-		Toast.makeText(this, addressString, Toast.LENGTH_SHORT).show();
 		// 시작 poiitem 을 찾는다.
 		if(isEnded == false){
 			MapPOIItem item = mMapView.findPOIItemByTag(START_TAG);
