@@ -2,11 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:gravity="bottom"
+    android:background="@drawable/m_bg" >
 
     <TextView
+        android:layout_marginBottom="50dp"
+        android:layout_gravity="bottom"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="앱 시작" />
+        android:textColor="#000"
+        android:textStyle="bold"
+        android:gravity="center_horizontal"
+        android:text="터치시 다음 화면으로 넘어갑니다."
+        android:shadowDx="3"
+        android:shadowDy="3"
+        android:shadowColor="#333"
+        android:shadowRadius="3" />
 
 </LinearLayout>

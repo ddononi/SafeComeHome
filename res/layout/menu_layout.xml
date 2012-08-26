@@ -2,38 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:background="#f8f8f8" >
-    
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="모드를 선택해 주세요."
-        android:gravity="center"
-        android:textColor="#FE8111"
-        android:textSize="20sp"
-        android:layout_marginTop="100dp"
-        />    
+    android:background="@drawable/m_bg"
+    android:orientation="vertical" >
 
-    <Button
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@drawable/guard_btn"
-        android:text="보호자로 시작하기"
-        android:onClick="mOnClick"
-        android:layout_margin="10dp"
-        android:id="@+id/parent_mode"
-        />
-    
-    <Button
-        android:layout_marginTop="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@drawable/child_btn"
-        android:text="피보호자로 시작하기"
-        android:layout_margin="10dp"
-        android:onClick="mOnClick"
-        android:id="@+id/child_mode"
-        />    
- </LinearLayout>
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="bottom"
+        android:layout_marginBottom="30dp"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:id="@+id/parent_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:background="@drawable/btn01"
+            android:onClick="mOnClick"
+            android:text="보호자로 시작하기" />
+
+        <ImageButton
+            android:id="@+id/child_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/btn02"
+            android:onClick="mOnClick"/>
+    </LinearLayout>
+
+</LinearLayout>
