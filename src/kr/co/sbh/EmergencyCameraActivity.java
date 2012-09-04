@@ -320,6 +320,8 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.camera_layout);
+    
+        
 		// 윈도우 디스플레이 얻기
 		display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
 				.getDefaultDisplay();
@@ -425,7 +427,9 @@ public class EmergencyCameraActivity extends BaseActivity implements
 		@Override
 		protected void onPostExecute(final Boolean result) { // 전송 완료후
 			// 모든 파일이 전송이 완료되면 다이얼로그를 닫는다.
-			dialog.dismiss(); // 프로그레스 다이얼로그 닫기
+			if(dialog != null && dialog.isShowing()){
+				dialog.dismiss(); // 프로그레스 다이얼로그 닫기
+			}
 			if (mFtp.isConnected()) { // 연결이 되어 있으면
 				mFtp.logout(); // 로그 아웃
 			}

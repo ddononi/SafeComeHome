@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 /**
@@ -99,8 +101,17 @@ public class BaseActivity extends Activity {
 
 	public static final String ACTION_SENT = "kr.co.sbh.SENT";
 	public static final String ACTION_DELIVERED = "kr.co.sbh.DELIVERED";
+	
+	
 
-    /*
+    @Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+        // 화면이 슬립상태가 되지 않도록 한다.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);		
+	}
+
+	/*
      * 앱  종료 다이얼로그
      */
     public void finishDialog(final Context context){

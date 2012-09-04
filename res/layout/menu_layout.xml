@@ -14,19 +14,21 @@
 
         <ImageButton
             android:id="@+id/parent_mode"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:background="@drawable/btn01"
             android:onClick="mOnClick"
+			android:layout_weight="1"            
             android:text="보호자로 시작하기" />
 
         <ImageButton
             android:id="@+id/child_mode"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="10dp"
+			android:layout_weight="1"
             android:background="@drawable/btn02"
             android:onClick="mOnClick"/>
     </LinearLayout>

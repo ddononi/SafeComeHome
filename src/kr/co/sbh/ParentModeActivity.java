@@ -40,6 +40,9 @@ import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -50,7 +53,7 @@ import android.widget.TextView;
  */
 public class ParentModeActivity extends BaseActivity implements
 OpenAPIKeyAuthenticationResultListener, MapViewEventListener,
-CurrentLocationEventListener, POIItemEventListener {
+CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	private MapView mMapView = null;
 	private final ProgressDialog dialog = null;
 	private MapPoint.GeoCoordinate mapPointGeo;	// 현위치를 받을 point 객체
@@ -111,6 +114,12 @@ CurrentLocationEventListener, POIItemEventListener {
 		mMapView.setCurrentLocationEventListener(this);
 		mMapView.setPOIItemEventListener(this);
 		mapParant.addView(mMapView);
+        // 줌인버튼
+		Button zoomInBtn  = (Button)findViewById(R.id.zoom_in);
+		// 줌아웃버튼
+		Button zoomOutBtn  = (Button)findViewById(R.id.zoom_out);		
+        zoomInBtn.setOnClickListener(this);
+        zoomOutBtn.setOnClickListener(this);		
 
 	}
 
@@ -464,6 +473,18 @@ CurrentLocationEventListener, POIItemEventListener {
 		}
 
 		return "";
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()){		
+		case R.id.zoom_in : // 줌인
+			mMapView.zoomIn(true);
+			break;
+		case R.id.zoom_out : // 줌 아웃
+			mMapView.zoomOut(true);			
+			break;
+		}
 	}
 }
 

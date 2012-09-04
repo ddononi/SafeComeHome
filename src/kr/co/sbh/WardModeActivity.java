@@ -177,19 +177,24 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
         ImageButton emailBtn = (ImageButton)findViewById(R.id.email_btn);
         // 바로 전화 걸기 버튼
         ImageButton callBtn = (ImageButton)findViewById(R.id.call_btn);
-
+        // 줌인버튼
+		Button zoomInBtn  = (Button)findViewById(R.id.zoom_in);
+		// 줌아웃버튼
+		Button zoomOutBtn  = (Button)findViewById(R.id.zoom_out);		
+        
         emerBtn.setOnClickListener(this);
         myLocBtn.setOnClickListener(this);
         emailBtn.setOnClickListener(this);
         callBtn.setOnClickListener(this);
-
+        zoomInBtn.setOnClickListener(this);
+        zoomOutBtn.setOnClickListener(this);
         // 출발 주소
 		startPlaceTv = (TextView)findViewById(R.id.start_place);
 		// 도착 주소
 		endPlaceTv = (TextView)findViewById(R.id.end_place);
-
 		startTimeTv  = (TextView)findViewById(R.id.startTime);
 		endTimeTv  = (TextView)findViewById(R.id.endTime);
+		
 	}
 
 	/**
@@ -625,6 +630,12 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			uri = Uri.parse("tel:" + sp.getString("phone1", "112") );
 			intent = new Intent(Intent.ACTION_CALL,uri);
 			startActivity(intent);
+			break;
+		case R.id.zoom_in : // 줌인
+			mMapView.zoomIn(true);
+			break;
+		case R.id.zoom_out : // 줌 아웃
+			mMapView.zoomOut(true);			
 			break;
 		}
 	}
