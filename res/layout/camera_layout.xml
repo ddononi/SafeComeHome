@@ -4,11 +4,6 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:text="자동영상 녹화 (약 30초가 자동영상 녹화후 보호자에게 전송됩니다.)" />
 
     <VideoView
         android:id="@+id/videoView"

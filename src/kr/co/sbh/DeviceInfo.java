@@ -18,6 +18,9 @@ public class DeviceInfo{
 	public String getDeviceNumber(){
 		String phoneNum = (_telephony != null)?_telephony.getLine1Number():"";
 		//String cellNum = phoneNum.substring(phoneNum.length()-8, phoneNum.length());
+		if(phoneNum == null){
+			return "112";
+		}
 		String cellNum = phoneNum.replace("+82", "0");
 		return cellNum;
 	}

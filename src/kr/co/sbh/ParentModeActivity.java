@@ -45,6 +45,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * 보호자 모드 엑티비티
@@ -63,10 +64,14 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	private final Handler handler = new Handler() {
     	@Override
 		public void handleMessage(final Message msg) {
-    		@SuppressWarnings("unchecked")
-    		// 핸들러를 통해 path를 그려준다.
-			List<PathPoint> list = (List<PathPoint>)msg.obj;
-    		drawPath(list);
+    		if(msg.what == 1){
+	    		// 핸들러를 통해 path를 그려준다.
+        		@SuppressWarnings("unchecked")    			
+				List<PathPoint> list = (List<PathPoint>)msg.obj;
+	    		drawPath(list);
+    		}else{
+    			//Toast.makeText(ParentModeActivity.this, "유저정보를 가져올수 없습니다.", Toast.LENGTH_SHORT).show();
+    		}
     	}
 	};
 
@@ -77,15 +82,36 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 		setContentView(R.layout.parent_mode_layout);
 		initLayout();
 		Log.i("safe", "thread start" );
-		
-		loadPath(REFRESH_TIME);
 	}
 	
+	
+	
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		loadPath(-1);
+	}
+
+
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		loadPath(REFRESH_TIME);
+	}
+
+
+
 	/**
 	 * 10초 주기로 서버에서 경로를 갱신한다.
 	 */
 	private void loadPath(final int sec){
-		new Handler().postDelayed(new Runnable() {
+		if(sec == -1){
+			return;
+		}
+		handler.postDelayed(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -262,7 +288,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	 * @throws XmlPullParserException
 	 * @throws IOException
 	 */
-	private List<PathPoint> processXML() throws XmlPullParserException, IOException {
+	private List<PathPoint> processXML() throws XmlPullParserException, IOException, Exception {
 	    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 	    XmlPullParser parser = factory.newPullParser();
 	    InputStreamReader isr = null;
@@ -287,6 +313,9 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 		    }
 		    String decodeXMl = URLDecoder.decode(xml.toString());
 			// xml 외의 문자 제거
+		    if(decodeXMl.equals("error")){
+		    	return null;
+		    }
 		    decodeXMl = decodeXMl.substring(decodeXMl.indexOf("<"), decodeXMl.lastIndexOf(">") + 1);
 		    parser.setInput(new StringReader(decodeXMl));
 			int eventType = -1;
@@ -387,15 +416,22 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 
 				Log.i("safe", "thread start" );
 				list = processXML();
-				Message msg = new Message();
-				msg.obj = list;
-				handler.sendMessage(msg);
+				if(list != null){
+					Message msg = new Message();
+					msg.what = 1;				
+					msg.obj = list;
+					handler.sendMessage(msg);
+				}
 			} catch (XmlPullParserException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (Exception e) {
+				Message msg = new Message();				
+				msg.what = -1;
+				handler.sendMessage(msg);
 			}
 
 			super.run();

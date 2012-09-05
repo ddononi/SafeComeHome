@@ -60,7 +60,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 	// 레코더 객체 생성
 	private MediaRecorder recorder = null;
 	// 녹화 시간 - 10초
-	private static final int RECORDING_TIME = 30000;
+	private static final int RECORDING_TIME =10000;
 
 	// 카메라 프리뷰를 설정한다
 	private void setCameraPreview(final SurfaceHolder holder) {
@@ -277,7 +277,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 		recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
 		recorder.setProfile(CamcorderProfile
-				.get(CamcorderProfile.QUALITY_HIGH));
+				.get(CamcorderProfile.QUALITY_LOW));
 
 		recorder.setOutputFile("/sdcard/myvideo.mp4");
 		recorder.setMaxDuration(10000); // Set max duration 60 sec.
@@ -355,7 +355,7 @@ public class EmergencyCameraActivity extends BaseActivity implements
 				// 서버에 전송
 				new AsyncTaskFileUpload().execute();
 			}
-		}, REC_TIME);
+		}, RECORDING_TIME);
 
 	}
 
@@ -371,10 +371,9 @@ public class EmergencyCameraActivity extends BaseActivity implements
 				.getDefault();
 		// 공유설정환경에서 보호자 전화번호를 가져온다.
 		SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
-		String phone1 = "01066089782"; //sp.getString("phone1", "010");
+		String phone1 = sp.getString("phone1", "");
 		String phone2 = sp.getString("phone2", "");
-		sp.getString("phone1", "");
-		sp.getString("phone2", "");
+
 		// 문자 발송
 		manager.sendTextMessage(phone1, null, message, null, null);
 		manager.sendTextMessage(phone2, null, message, null, null);
