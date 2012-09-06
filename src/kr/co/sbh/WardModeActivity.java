@@ -237,6 +237,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			// 서비스설정
 			Intent serviceIntent = new Intent(this, TrackerService.class);
 			stopService(serviceIntent);
+			
+			// 추적 서비스는 종료
+			serviceIntent = new Intent(this, TraceService.class);
+			stopService(serviceIntent);			
 			/*
 			ArrayList<PathPoint> list = new ArrayList<PathPoint>();
 			PathPoint data;
@@ -781,6 +785,9 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		Intent serviceIntent = new Intent(this, TrackerService.class);
 		// 서비스 종료
 		stopService(serviceIntent);
+		// 추적 서비스는 다시 시작
+		serviceIntent = new Intent(this, TraceService.class);
+		startService(serviceIntent);			
 		endTimeTv.setText("도착시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
 		uts = new UploadToServer(point, "end", endPlaceTv.getText().toString(), endTimeTv.getText().toString());
 		uts.start();

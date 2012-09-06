@@ -28,7 +28,15 @@
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".InfoActivity"></activity>
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".MenuActivity"></activity>
 		<activity android:screenOrientation="portrait" android:theme="@android:style/Theme.NoTitleBar" android:name=".ParentModeActivity"></activity>
-		<service android:name=".TrackerService"></service>      
+		<service android:name=".TrackerService"></service>   
+		<service android:name=".TraceService"></service>     		   
+        <!--  부팅시 처리할 리시버 -->   
+		<receiver android:name=".BootBroadCastReceiver">
+	        <intent-filter>
+	          <action android:name="android.intent.action.BOOT_COMPLETED" />
+	          <category android:name="android.intent.category.LAUNCHER" />          
+	        </intent-filter>
+        </receiver>		
     </application>
     <uses-permission android:name="android.permission.RECORD_VIDEO" />  
 	<uses-feature android:name="android.hardware.camera"/>
@@ -42,6 +50,7 @@
 	<uses-permission android:name="android.permission.CALL_PHONE" />
 	<uses-permission android:name="android.permission.SEND_SMS" />
 	<uses-permission android:name="android.permission.VIBRATE" />
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>	
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />  
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.STORAGE" />

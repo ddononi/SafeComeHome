@@ -191,11 +191,19 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
         		MapPOIItem item = new MapPOIItem();
         		// poi 아이템 설정
         		item.setTag(START_TAG);
-        		item.setItemName("출발");
+        		if(p.getPathFlag().equals("trace")){	//이동경로상황체크가 아닐경우 현 위치만 알기
+        			item.setItemName("현위치");
+        		}else{
+        			item.setItemName("출발");
+        		}
         		item.setMapPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()));
         		item.setShowAnimationType(ShowAnimationType.SpringFromGround);
         		item.setMarkerType(MarkerType.CustomImage);
-        		item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);
+        		if(p.getPathFlag().equals("trace")){	//이동경로상황체크가 아닐경우 현 위치만 알기        		
+        			item.setCustomImageResourceId(R.drawable.ninja);
+        		}else{
+        			item.setCustomImageResourceId(R.drawable.custom_poi_marker_start);	
+        		}
         		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
         		// 맵에 붙여준다.
         		mMapView.addPOIItem(item);
