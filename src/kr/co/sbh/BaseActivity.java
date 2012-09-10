@@ -28,6 +28,7 @@ public class BaseActivity extends Activity {
 
     /* Server setting */
     public static final String SERVER_URL = "lsj8261.cafe24.com";	//	서버 주소
+    public static final String CHILD_MAP_URL = "http://" + SERVER_URL + "/safeComeHome/map.html";	//  피보호자위치지도주소    
     public static final int MAX_SERVER_CONNECT_COUNT = 5;	//	최대 서버 연결 회수
     public static final String GET_URL = "/safeComeHome/loadPath.php";	// 경로 가져오기
     public static final String WARD_INFO_URL = "/safeComeHome/loadWardInfo.php";	// 피보호자 정보 가져오기

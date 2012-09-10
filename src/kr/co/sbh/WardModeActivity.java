@@ -620,18 +620,16 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			intent = new Intent(this, EmergencyCameraActivity.class);
 			startActivity(intent);
 			break;
-		case R.id.email_btn :	// 이메일 발송
-			// SMS 발송
-			String emailAddr = "smsto:" +  sp.getString("phone1", "112");
-			Uri uri = Uri.parse(emailAddr);
-			intent = new Intent(Intent.ACTION_SENDTO, uri);
-			intent.putExtra("sms_body", EMAIL_MSG);
-			startActivity(intent);
+		case R.id.email_btn :	// SMS 발송
+			sendSMS(EMAIL_MSG);
+			//  피보호자 위치 지도 발송
+			sendSMS(CHILD_MAP_URL);
+			Toast.makeText(this, "보호자에게 긴급문자를 발송했습니다.", Toast.LENGTH_SHORT).show();
 			break;
 		case R.id.call_btn : 		// 보호자에게 전화하기
 			// 보호자에게 전화걸기를 시도
 			// 전화번호가 없을경우 112로 신고
-			uri = Uri.parse("tel:" + sp.getString("phone1", "112") );
+			Uri uri = Uri.parse("tel:" + sp.getString("phone1", "112") );
 			intent = new Intent(Intent.ACTION_CALL,uri);
 			startActivity(intent);
 			break;
@@ -1158,6 +1156,26 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		}
 
 		return "";
+	}	
+	
+	/**
+	 * 문자 발송하기
+	 * 
+	 * @param message
+	 */
+	private void sendSMS(final String message) {
+		// PendingIntent pItent = PendingIntent.getBroadcast(this, 0, new
+		// Intent(ACTION_SENT), 0);
+		android.telephony.SmsManager manager = android.telephony.SmsManager
+				.getDefault();
+		// 공유설정환경에서 보호자 전화번호를 가져온다.
+		SharedPreferences sp = getSharedPreferences(PREFER, MODE_PRIVATE);
+		String phone1 = sp.getString("phone1", "");
+		String phone2 = sp.getString("phone2", "");
+
+		// 문자 발송
+		manager.sendTextMessage(phone1, null, message, null, null);
+		manager.sendTextMessage(phone2, null, message, null, null);
 	}	
 
 
