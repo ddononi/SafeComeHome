@@ -30,14 +30,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1" >
 
-            <!-- 사진 보기 -->
-
-            <ImageView
-                android:id="@+id/avata_image"
-                android:layout_centerInParent="true"
-                android:layout_width="100dp"
-                android:layout_height="100dp" />
-
             <!-- 사진 등록 -->
 
             <ImageButton
@@ -46,6 +38,14 @@
                 android:layout_height="100dp"
                 android:layout_centerInParent="true"
                 android:background="@drawable/add_photo" />
+            
+            <!-- 사진 보기 -->
+
+            <ImageView
+                android:id="@+id/avata_image"
+                android:layout_centerInParent="true"
+                android:layout_width="100dp"
+                android:layout_height="100dp" />            
         </RelativeLayout>
         <!-- 이름 -->
 

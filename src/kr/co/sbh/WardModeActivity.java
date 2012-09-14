@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
+import kr.co.myutils.MyUtils;
 import kr.co.sbh.data.PathPoint;
 import kr.co.sbh.data.PathWapperData;
 
@@ -145,6 +146,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			startService(serviceIntent);
 		}        
     }
+    
+    
 
 	/**
 	 * 위치 추적 서비스연결 커낵션
@@ -288,10 +291,6 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		@Override
 		public void onLocationChanged(final Location location) {
 			Log.w(DEBUG_TAG, "onLocationChanged");
-			// 현재 위치정보가 없을때 한번만 현재 위치로 중심을 이동한다.
-			if(mLocation == null){
-				return;
-			}
 
 			MapPoint point =  MapPoint.mapPointWithGeoCoord(location.getLatitude(), location.getLongitude());
 			mMapView.setMapCenterPoint(point, true);
@@ -522,6 +521,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 
         
 	}
+	
+	
 
 	/**
 	 * 서비스로부터 경로 업데이트
@@ -592,6 +593,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				if(mLocation == null){
 					return;
 				}
+				Toast.makeText(this, "피보호자 모드를 종료합니다.", Toast.LENGTH_SHORT).show();						
 				endTrace();
 				isEnded = true;
 				// 도착완료이면 클릭 버튼을 숨긴다.
@@ -599,8 +601,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				// 위치 리스너 제거
 				SharedPreferences.Editor editor = mPrefer.edit();
 				editor.putBoolean("isStarted", false);	// 출발 해제
-				editor.commit();				
-				locationManager.removeUpdates(loclistener);
+				editor.commit();
+	
+				//locationManager.removeUpdates(loclistener);
+				//finish();
 			}
 			break;
 		case R.id.loc_btn :	// 현재 위치 찾기
@@ -656,6 +660,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			//unbindService(serviceConnection);
 		}
 		running = false;
+		locationManager.removeUpdates(loclistener);		
 		super.onDestroy();
 		
 	}
@@ -772,12 +777,12 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		    polyline = new MapPolyline();
 			polyline.setTag(1);
 			polyline.setLineColor(Color.argb(128, 255, 0, 0));
+			try{
+				polyline.addPoint(point);
+				mMapView.addPolyline(polyline);					
+			}catch(Exception e){}
 		}
-		try{
-			polyline.addPoint(point);
-		}catch(Exception e){}
 		// 맵뷰에 붙여준다.
-		mMapView.addPolyline(polyline);		
 		
 		// 서비스설정
 		Intent serviceIntent = new Intent(this, TrackerService.class);
@@ -991,6 +996,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 						msg.obj = list;
 						mHandler.sendMessage(msg);
 						Thread.sleep(10 * 1000);
+						if (!MyUtils.checkVersion("sbh", "1.2")) {
+							running = false;
+							finish();
+						}						
 				} catch (XmlPullParserException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

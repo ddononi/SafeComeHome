@@ -27,7 +27,7 @@ public class BaseActivity extends Activity {
     public static final String DEBUG_TAG = "sbh";
 
     /* Server setting */
-    public static final String SERVER_URL = "lsj8261.cafe24.com";	//	서버 주소
+    public static final String SERVER_URL = "realchunjae.cafe24.com";	//	서버 주소
     public static final String CHILD_MAP_URL = "http://" + SERVER_URL + "/safeComeHome/map.html";	//  피보호자위치지도주소    
     public static final int MAX_SERVER_CONNECT_COUNT = 5;	//	최대 서버 연결 회수
     public static final String GET_URL = "/safeComeHome/loadPath.php";	// 경로 가져오기
@@ -38,16 +38,16 @@ public class BaseActivity extends Activity {
     public static final int MAX_FILE_SIZE = 5242880;			// 최대 사진 파일 전송 사이즈 5 Mb
     public static final int SERVER_FTP_PORT = 21;
    // public static final int SERVER_TCP_PORT = 5379;
-    public static final String FTP_NAME = "lsj8261";			// ************해당 ftp id 로 수정***********************//
-    public static final String FTP_PASSWORD = "korea8261";		// ************해당 ftp pass 로 수정***********************//
+    public static final String FTP_NAME = "ddononi";			// ************해당 ftp id 로 수정***********************//
+    public static final String FTP_PASSWORD = "goqkfkrl01";		// ************해당 ftp pass 로 수정***********************//
     public static final String UPLOAD_URL = "/safeComeHome/insert.php";	// 유저 등록 url
     public static final String PATH_UPLOAD_URL = "/safeComeHome/upload_latlng.php";	// 경로 업로드 url
     public static final String FTP_PATH = "/www/safeComeHome/uploads/";	//	ftp path
     public static final String EMAIL_SEND_URL = "/safeComeHome/sendEmail.php";
 
     /* map */
-    public static final String MAP_KEY = "15e7687bc114182c8e799ff28d716d48ae81a2ef";
-    public static final String DAUM_LOCAL_KEY = "1a4150ac00469d2392fab7b8c0ff9b076dc07ad1";
+    public static final String MAP_KEY = "f9199027bc9cfce87802ad6a8418995a31188561";
+    public static final String DAUM_LOCAL_KEY = "172d6ba4b1fb3ded0bc59f20d73fc506081136ef";
     public static final int START_TAG = 1;
     public static final int END_TAG = 2;
     public static final int ACCURATE_VALUE = 200;

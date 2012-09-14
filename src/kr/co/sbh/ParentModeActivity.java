@@ -59,7 +59,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	private final ProgressDialog dialog = null;
 	private MapPoint.GeoCoordinate mapPointGeo;	// 현위치를 받을 point 객체
 	
-	public final int REFRESH_TIME = 5;				// 서버에서 목록 갱신 초
+	public int refreshTime = 10;				// 서버에서 목록 갱신 초
 	// ui 처리를 위한 핸들러
 	private final Handler handler = new Handler() {
     	@Override
@@ -68,6 +68,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	    		// 핸들러를 통해 path를 그려준다.
         		@SuppressWarnings("unchecked")    			
 				List<PathPoint> list = (List<PathPoint>)msg.obj;
+     		
 	    		drawPath(list);
     		}else{
     			//Toast.makeText(ParentModeActivity.this, "유저정보를 가져올수 없습니다.", Toast.LENGTH_SHORT).show();
@@ -90,7 +91,21 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		super.onPause();
-		loadPath(-1);
+		refreshTime = -1;
+		loadPath();
+	}
+	
+	
+
+
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		// TODO Auto-generated method stub
+		super.onWindowFocusChanged(hasFocus);
+		if(hasFocus == false){
+			loadPath();
+		}
 	}
 
 
@@ -99,7 +114,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		loadPath(REFRESH_TIME);
+		refreshTime = 10;
+		loadPath();
 	}
 
 
@@ -107,8 +123,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 	/**
 	 * 10초 주기로 서버에서 경로를 갱신한다.
 	 */
-	private void loadPath(final int sec){
-		if(sec == -1){
+	private void loadPath(){
+		if(refreshTime == -1){
 			return;
 		}
 		handler.postDelayed(new Runnable() {
@@ -116,9 +132,9 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 			@Override
 			public void run() {
 				new LoadPathThread().start();
-				loadPath(sec);
+				loadPath();
 			}
-		}, sec * 1000);	
+		}, refreshTime * 1000);	
 	}
 
 
@@ -262,8 +278,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 		}
 		// 맵뷰에 붙여준다.
 		mMapView.addPolyline(polyline);
-		// 모든 패스가 보이도록화면을 조정한다.
-		mMapView.fitMapViewAreaToShowAllPolylines();
+		PathPoint p = list.get(list.size()-1);	// 마지막 요소를 꺼내온다.
+		mMapView.setMapCenterPoint(MapPoint.mapPointWithGeoCoord(p.getLatitude(), p.getLongitude()), true);
 	}
 
 	/**
@@ -424,7 +440,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 
 				Log.i("safe", "thread start" );
 				list = processXML();
-				if(list != null){
+				if(list != null || list.size() > 0){
 					Message msg = new Message();
 					msg.what = 1;				
 					msg.obj = list;

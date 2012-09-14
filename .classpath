@@ -9,5 +9,6 @@
 	<classpathentry kind="lib" path="C:/workspace/SafeBackHome/libs/activation.jar"/>
 	<classpathentry kind="lib" path="C:/workspace/SafeBackHome/libs/additionnal.jar"/>
 	<classpathentry kind="lib" path="C:/workspace/SafeBackHome/libs/mail.jar"/>
+	<classpathentry kind="lib" path="libs/MyUtils.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
