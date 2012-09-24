@@ -593,8 +593,10 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 				if(mLocation == null){
 					return;
 				}
-				Toast.makeText(this, "피보호자 모드를 종료합니다.", Toast.LENGTH_SHORT).show();						
-				endTrace();
+				Toast.makeText(this, "피보호자 모드를 종료합니다.", Toast.LENGTH_SHORT).show();	
+				try{
+					endTrace();
+				}catch(NullPointerException e){}
 				isEnded = true;
 				// 도착완료이면 클릭 버튼을 숨긴다.
 				v.setVisibility(View.GONE);
@@ -750,13 +752,12 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 	/**
 	 * 추적 종료시 종료 오버레이 아이템을 생성하고 맵뷰에 븉여준다.
 	 */
-	private void endTrace() {
+	private void endTrace() throws NullPointerException {
 
 		// 현재 위치를 얻고
 		isEnded = true;
 		MapPoint point =  MapPoint.mapPointWithGeoCoord(mLocation.getLatitude(), mLocation.getLongitude());
 
-		
 		pathList.add(point);
 
 		reverseGeoCoder = new MapReverseGeoCoder(DAUM_LOCAL_KEY, point, this, this);
@@ -771,6 +772,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 		item.setMarkerType(MarkerType.CustomImage);
 		item.setCustomImageResourceId(R.drawable.custom_poi_marker_end);
 		item.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(22,0));
+
 		// 맵에 붙여준다.
 		mMapView.addPOIItem(item);
 		if(polyline != null){
@@ -783,21 +785,26 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			}catch(Exception e){}
 		}
 		// 맵뷰에 붙여준다.
-		
+
 		// 서비스설정
 		Intent serviceIntent = new Intent(this, TrackerService.class);
 		// 서비스 종료
 		stopService(serviceIntent);
 		// 추적 서비스는 다시 시작
 		serviceIntent = new Intent(this, TraceService.class);
-		startService(serviceIntent);			
+		startService(serviceIntent);		
+
 		endTimeTv.setText("도착시간 : " + new SimpleDateFormat("hh시 mm분 ss초").format(new Date()));
 		uts = new UploadToServer(point, "end", endPlaceTv.getText().toString(), endTimeTv.getText().toString());
 		uts.start();
-		
+
 		drawPath();
+
 		// 현재 위치 아이템 제거
-		mMapView.removePOIItem(mMapView.findPOIItemByTag(10));
+		if(mMapView.findPOIItemByTag(10) != null){
+			mMapView.removePOIItem(mMapView.findPOIItemByTag(10));
+		}
+		
 	}
 
 

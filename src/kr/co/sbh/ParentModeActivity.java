@@ -238,6 +238,7 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener {
 				//if(p.getPathFlag() != null &&
 				//	p.getPathFlag().equals("arrive")){	// 도착 아이콘
 				// 도착 아이콘 처리
+				refreshTime= -1;	// 쓰레드 종료
 				MapPOIItem endItem = new MapPOIItem();
 				// poi 아이템 설정
 				endItem.setTag(END_TAG);
