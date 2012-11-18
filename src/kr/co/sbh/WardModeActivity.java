@@ -144,6 +144,8 @@ CurrentLocationEventListener, POIItemEventListener, OnClickListener, ReverseGeoC
 			// 다시 서비스 시작
 			Intent serviceIntent = new Intent(this, TrackerService.class);        
 			startService(serviceIntent);
+			serviceIntent = new Intent(this, TraceService.class);
+			stopService(serviceIntent);			
 		}        
     }
     
